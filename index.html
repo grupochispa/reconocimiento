@@ -227,7 +227,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // ─── Modal y Detalle ──────────────────────────────────────────
 function openModal(data) {
     currentRecord = data;
-    document.getElementById('modalSubtitle').textContent = `Registro: ${data.id} | Creado: ${new Date(data.created_at).toLocaleString()}`;
+    document.getElementById('modalSubtitle').textContent = `Registro: ${data.id} | Creado: ${new Date(data.created_at).toLocaleString('es-VE')}`;
     
     // Controles de botones según estado
     const actions = document.getElementById('modalActions');
@@ -362,7 +362,7 @@ document.getElementById('btnAprobar').addEventListener('click', () => {
 });
 
 document.getElementById('btnRechazar').addEventListener('click', () => {
-    if(confirm('¿Estás seguro de RECHAZAR ésta compensación?')) {
+    if(confirm('¿Estás seguro de RECHAZAR esta compensación?')) {
         updateStatus('RECHAZADO');
     }
 });
