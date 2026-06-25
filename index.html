@@ -106,6 +106,8 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 .group-btn-pdf.print:hover{background:var(--purple);color:#fff}
 .group-btn-pdf.revert{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
 .group-btn-pdf.revert:hover{background:var(--red);color:#fff}
+.group-btn-pdf.delete{background:#fff0f0;color:#b91c1c;border-color:#fca5a5}
+.group-btn-pdf.delete:hover{background:#b91c1c;color:#fff}
 .group-btn-pdf svg{width:13px;height:13px;stroke:currentColor}
 
 .group-items{display:none;border-top:1px solid var(--border)}
@@ -260,6 +262,24 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 .btn-revert-ok{padding:.6rem 1.1rem;border-radius:var(--radius);font-size:.82rem;font-weight:700;background:var(--amber);color:#fff;border:1.5px solid var(--amber);transition:all .2s;display:flex;align-items:center;gap:.35rem}
 .btn-revert-ok:hover{background:#b45309}
 
+/* ── DELETE MODAL ── */
+.delete-modal{background:var(--surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);width:100%;max-width:400px;margin:auto;padding:1.75rem;animation:slideUp .2s ease}
+.delete-modal h3{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:.3rem}
+.delete-modal p{font-size:.83rem;color:var(--text2);margin-bottom:.85rem;line-height:1.5}
+.delete-warning{background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--radius);padding:.6rem .85rem;font-size:.78rem;color:var(--red);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:flex-start;gap:.5rem}
+.delete-warning svg{width:16px;height:16px;stroke:var(--red);flex-shrink:0;margin-top:.05rem}
+.delete-pwd-wrap{position:relative;margin-bottom:1.1rem}
+.delete-pwd-wrap input{width:100%;padding:.7rem 2.5rem .7rem .9rem;border:1.5px solid var(--border);border-radius:var(--radius);outline:none;font-size:.9rem;color:var(--text);background:var(--surface);transition:border .2s}
+.delete-pwd-wrap input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.08)}
+.delete-pwd-wrap input.error{border-color:var(--red)}
+.delete-eye{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text3)}
+.delete-eye svg{width:18px;height:18px;stroke:currentColor;fill:none}
+.delete-err{font-size:.78rem;color:var(--red);margin-top:-.7rem;margin-bottom:.75rem;display:none}
+.delete-err.show{display:block}
+.delete-actions{display:flex;gap:.75rem;justify-content:flex-end}
+.btn-delete-ok{padding:.6rem 1.1rem;border-radius:var(--radius);font-size:.82rem;font-weight:700;background:var(--red);color:#fff;border:1.5px solid var(--red);transition:all .2s;display:flex;align-items:center;gap:.35rem}
+.btn-delete-ok:hover{background:#b91c1c}
+
 /* ── PDF hidden ── */
 #pdfContent{position:absolute;left:-9999px;top:0;width:794px;font-family:'Inter',sans-serif;font-size:12px;background:#fff;padding:2.5rem}
 
@@ -402,6 +422,35 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
       <button class="btn-revert-ok" id="btnRevertOk">
         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         Revertir
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-backdrop" id="deleteBackdrop">
+  <div class="delete-modal">
+    <div class="confirm-icon reject" style="margin-bottom:.9rem">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+    </div>
+    <h3>Eliminar registro</h3>
+    <p id="deleteDesc">Este registro será eliminado permanentemente de la base de datos.</p>
+    <div class="delete-warning">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      Esta acción es irreversible. El registro y toda su información serán eliminados definitivamente.
+    </div>
+    <div class="delete-pwd-wrap">
+      <input type="password" id="deletePwdInput" placeholder="Clave de autorización…">
+      <span class="delete-eye" id="deleteEyeToggle">
+        <svg id="deleteEyeIcon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+      </span>
+    </div>
+    <div class="delete-err" id="deleteErr">Clave incorrecta. Intenta nuevamente.</div>
+    <div class="delete-actions">
+      <button class="btn-cancel" id="btnDeleteCancel">Cancelar</button>
+      <button class="btn-delete-ok" id="btnDeleteOk">
+        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        Eliminar definitivamente
       </button>
     </div>
   </div>
@@ -622,6 +671,10 @@ function renderSkuRow(item) {
     <button class="group-btn-pdf revert" onclick="event.stopPropagation();openRevertModal(${item.id})" title="Revertir a Pendiente" style="padding:.2rem .5rem;font-size:.68rem">
       <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       Revertir
+    </button>
+    <button class="group-btn-pdf delete" onclick="event.stopPropagation();openDeleteModal(${item.id})" title="Eliminar registro" style="padding:.2rem .5rem;font-size:.68rem">
+      <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      Eliminar
     </button>` : '';
   return `
     <div class="sku-row" onclick="openDetailModal('${item.id}')">
@@ -814,6 +867,48 @@ document.getElementById('btnRevertOk').addEventListener('click',async()=>{
   loadAllCounts(); loadData();
 });
 document.getElementById('revertPwdInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btnRevertOk').click();});
+
+// ── DELETE MODAL ─────────────────────────────────────────────
+let deleteRecordId = null;
+function openDeleteModal(id){
+  deleteRecordId=id;
+  const r=allRecords.find(x=>String(x.id)===String(id));
+  document.getElementById('deleteDesc').innerHTML=`Vas a eliminar permanentemente el registro de <strong>${esc(r?r.producto:'este SKU')}</strong> — <strong>${esc(r?r.cliente_nombre:'')}</strong>.`;
+  document.getElementById('deletePwdInput').value='';
+  document.getElementById('deleteErr').classList.remove('show');
+  document.getElementById('deletePwdInput').classList.remove('error');
+  document.getElementById('deleteBackdrop').classList.add('open');
+}
+document.getElementById('btnDeleteCancel').addEventListener('click',()=>document.getElementById('deleteBackdrop').classList.remove('open'));
+document.getElementById('deleteBackdrop').addEventListener('click',e=>{if(e.target===document.getElementById('deleteBackdrop'))document.getElementById('deleteBackdrop').classList.remove('open');});
+// Toggle eye
+document.getElementById('deleteEyeToggle').addEventListener('click',()=>{
+  const inp=document.getElementById('deletePwdInput');
+  const icon=document.getElementById('deleteEyeIcon');
+  if(inp.type==='password'){
+    inp.type='text';
+    icon.innerHTML='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+  } else {
+    inp.type='password';
+    icon.innerHTML='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+  }
+});
+document.getElementById('btnDeleteOk').addEventListener('click',async()=>{
+  const pwd=document.getElementById('deletePwdInput').value;
+  if(pwd!==REVERT_PASS){
+    document.getElementById('deletePwdInput').classList.add('error');
+    document.getElementById('deleteErr').classList.add('show');
+    return;
+  }
+  const btn=document.getElementById('btnDeleteOk'), orig=btn.innerHTML;
+  btn.innerHTML='Eliminando…'; btn.disabled=true;
+  const {error}=await sb.from('compensaciones').delete().eq('id',deleteRecordId);
+  btn.innerHTML=orig; btn.disabled=false;
+  if(error){alert('Error al eliminar: '+error.message);return;}
+  document.getElementById('deleteBackdrop').classList.remove('open');
+  loadAllCounts(); loadData();
+});
+document.getElementById('deletePwdInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btnDeleteOk').click();});
 
 // ── LIGHTBOX with zoom ───────────────────────────────────────
 let lbPhotos=[], lbIdx=0;
