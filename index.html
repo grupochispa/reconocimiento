@@ -1,395 +1,1145 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - MarquesCheck</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: { brand: { 50:'#f0f9ff',100:'#e0f2fe',600:'#0284c7',700:'#0369a1',900:'#0c4a6e' } }
-                }
-            }
-        }
-    </script>
-    <style>
-        .tab-active { border-bottom: 3px solid #0284c7; color: #0284c7; font-weight: 700; }
-        .tab-inactive { color: #6b7280; font-weight: 600; border-bottom: 3px solid transparent; }
-        .tab-inactive:hover { color: #374151; border-color: #e5e7eb; }
-        #appContainer { display: none; }
-        #loginContainer { display: flex; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarquesCheck — Panel de Compensaciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#1a2b56;--brand-light:#2a3f7a;--accent:#f59e0b;
+  --bg:#f4f6fb;--surface:#fff;--surface2:#f8f9fc;
+  --border:#e5e8f0;--border2:#d1d5e0;
+  --text:#111827;--text2:#4b5563;--text3:#9ca3af;
+  --green:#059669;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --red:#dc2626;--red-bg:#fef2f2;--red-border:#fecaca;
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-border:#fde68a;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-border:#ddd6fe;
+  --radius:10px;--radius-lg:16px;--radius-xl:22px;
+  --shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font-family:inherit;font-size:14px}
+
+#loginWrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem}
+#appWrap{display:none;flex-direction:column;min-height:100vh}
+
+.login-card{background:var(--surface);border-radius:var(--radius-xl);border:1px solid var(--border);box-shadow:var(--shadow-lg);width:100%;max-width:400px;padding:2.5rem}
+.login-logo{text-align:center;margin-bottom:2rem}
+.login-logo h1{font-size:1.6rem;font-weight:800;color:var(--brand)}
+.login-logo h1 span{color:var(--accent)}
+.login-logo p{font-size:.8rem;color:var(--text3);margin-top:.25rem}
+.field{margin-bottom:1.1rem}
+.field label{display:block;font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:.4rem}
+.field input{width:100%;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius);outline:none;transition:border .2s,box-shadow .2s;color:var(--text);background:var(--surface)}
+.field input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(26,43,86,.08)}
+.btn-primary{width:100%;padding:.85rem;background:var(--brand);color:#fff;font-weight:700;font-size:.95rem;border-radius:var(--radius);transition:background .2s}
+.btn-primary:hover{background:var(--brand-light)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+
+header{background:var(--brand);padding:.9rem 1.5rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.header-logo{display:flex;align-items:center;gap:.75rem}
+.header-logo-icon{width:34px;height:34px;background:rgba(255,255,255,.12);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.header-logo-icon svg{width:18px;height:18px;stroke:#fff}
+.header-logo h1{font-size:1.05rem;font-weight:800;color:#fff}
+.header-logo h1 span{color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:1rem}
+.header-user{font-size:.78rem;color:rgba(255,255,255,.6);font-weight:500}
+.btn-logout{font-size:.8rem;font-weight:600;color:rgba(255,255,255,.7);padding:.35rem .8rem;border-radius:6px;transition:all .2s}
+.btn-logout:hover{color:#fff;background:rgba(255,255,255,.12)}
+
+main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem}
+
+.tabs-bar{display:flex;gap:.25rem;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:.3rem;margin-bottom:1.25rem;width:fit-content}
+.tab-btn{padding:.45rem 1.1rem;border-radius:7px;font-size:.82rem;font-weight:600;color:var(--text2);transition:all .2s;display:flex;align-items:center;gap:.4rem;white-space:nowrap}
+.tab-btn:hover{color:var(--text);background:var(--surface2)}
+.tab-btn.active{background:var(--brand);color:#fff;box-shadow:0 1px 4px rgba(26,43,86,.2)}
+.tab-count{font-size:.7rem;padding:.1rem .45rem;border-radius:20px;background:rgba(255,255,255,.2);line-height:1.4}
+.tab-btn:not(.active) .tab-count{background:var(--border);color:var(--text2)}
+
+.toolbar{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap svg{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--text3);pointer-events:none}
+.search-input{width:100%;padding:.6rem .9rem .6rem 2.2rem;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);outline:none;transition:border .2s}
+.search-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(26,43,86,.07)}
+.filter-select{padding:.6rem .9rem;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);outline:none;cursor:pointer;min-width:140px;transition:border .2s}
+.filter-select:focus{border-color:var(--brand)}
+.btn-clear-filters{font-size:.78rem;font-weight:600;color:var(--text3);padding:.5rem .75rem;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface);transition:all .2s}
+.btn-clear-filters:hover{color:var(--text);border-color:var(--border2)}
+
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-bottom:1.25rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1.1rem}
+.stat-card .label{font-size:.72rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.2rem}
+.stat-card .value{font-size:1.4rem;font-weight:800;color:var(--text)}
+.stat-card .sub{font-size:.72rem;color:var(--text3);margin-top:.1rem}
+.stat-card.green .value{color:var(--green)}
+.stat-card.amber .value{color:var(--amber)}
+
+.groups-list{display:flex;flex-direction:column;gap:1rem}
+.client-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .2s}
+.client-group:hover{box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.group-header{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;cursor:pointer;transition:background .15s;user-select:none}
+.group-header:hover{background:var(--surface2)}
+.group-avatar{width:40px;height:40px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#fff;flex-shrink:0}
+.group-info{flex:1;min-width:0}
+.group-name{font-weight:700;font-size:.95rem;color:var(--text)}
+.group-meta{font-size:.75rem;color:var(--text3);margin-top:.1rem}
+.group-summary{display:flex;align-items:center;gap:.6rem;margin-left:auto;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.group-total{font-weight:800;font-size:1rem;color:var(--green)}
+.group-badge{font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:20px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+.group-badge.green{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.group-badge.red{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+.group-badge.mixed{background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border)}
+.group-chevron{width:18px;height:18px;stroke:var(--text3);transition:transform .25s;flex-shrink:0}
+.group-header.open .group-chevron{transform:rotate(180deg)}
+
+.group-pdf-btns{display:flex;gap:.35rem}
+.group-btn-pdf{font-size:.72rem;font-weight:700;padding:.3rem .65rem;border-radius:6px;background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);transition:all .2s;display:flex;align-items:center;gap:.3rem}
+.group-btn-pdf:hover{background:var(--blue);color:#fff}
+.group-btn-pdf.print{background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border)}
+.group-btn-pdf.print:hover{background:var(--purple);color:#fff}
+.group-btn-pdf.revert{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+.group-btn-pdf.revert:hover{background:var(--red);color:#fff}
+.group-btn-pdf svg{width:13px;height:13px;stroke:currentColor}
+
+.group-items{display:none;border-top:1px solid var(--border)}
+.group-items.open{display:block}
+.sku-row{display:flex;align-items:center;gap:1rem;padding:.85rem 1.25rem .85rem 4.5rem;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--border)}
+.sku-row:last-child{border-bottom:none}
+.sku-row:hover{background:var(--surface2)}
+.sku-info{flex:1;min-width:0}
+.sku-product{font-weight:700;font-size:.85rem;color:var(--text)}
+.sku-meta{font-size:.72rem;color:var(--text3);margin-top:.15rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.tag{display:inline-flex;align-items:center;padding:.15rem .5rem;border-radius:5px;font-size:.7rem;font-weight:700;line-height:1.4}
+.tag-purple{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border)}
+.tag-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border)}
+.tag-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+.sku-amount{font-weight:800;font-size:.95rem;color:var(--green);white-space:nowrap}
+.sku-date{font-size:.72rem;color:var(--text3);white-space:nowrap}
+.sku-arrow svg{width:15px;height:15px;stroke:var(--text3)}
+.sku-status{font-size:.7rem;font-weight:700;padding:.2rem .55rem;border-radius:5px}
+.status-pending{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+.status-approved{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.status-rejected{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--text3)}
+.empty-state svg{width:48px;height:48px;stroke:currentColor;margin:0 auto 1rem;opacity:.4}
+.empty-state p{font-size:.9rem;font-weight:500}
+.loading-row{text-align:center;padding:2rem;color:var(--text3);font-size:.85rem}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,15,30,.55);backdrop-filter:blur(4px);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto}
+.modal-backdrop.open{display:flex}
+
+.detail-modal{background:var(--surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);width:100%;max-width:860px;margin:auto;animation:slideUp .25s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);background:var(--surface2);border-radius:var(--radius-xl) var(--radius-xl) 0 0}
+.modal-header-info h3{font-size:1rem;font-weight:800;color:var(--text)}
+.modal-header-info p{font-size:.75rem;color:var(--text3);margin-top:.2rem}
+.btn-close-modal{width:32px;height:32px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.btn-close-modal:hover{background:var(--red-bg);border-color:var(--red-border)}
+.btn-close-modal svg{width:16px;height:16px;stroke:var(--text2)}
+.modal-body{padding:1.5rem;overflow-y:auto;max-height:65vh}
+
+.modal-footer{display:flex;flex-direction:column;gap:.75rem;padding:1rem 1.5rem;border-top:1px solid var(--border);background:var(--surface2);border-radius:0 0 var(--radius-xl) var(--radius-xl)}
+.modal-footer-row{display:flex;align-items:center;gap:.75rem;width:100%}
+.modal-footer-row.actions-row{justify-content:flex-end}
+.obs-input-inline{flex:1;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:var(--radius);outline:none;font-size:.82rem;transition:border .2s;background:var(--surface);color:var(--text)}
+.obs-input-inline:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(26,43,86,.07)}
+.obs-input-inline::placeholder{color:var(--text3)}
+.obs-input-inline:disabled{background:var(--surface2);color:var(--text2);cursor:default}
+.obs-label{font-size:.75rem;font-weight:600;color:var(--text2);white-space:nowrap}
+.btn-action{padding:.6rem 1.1rem;border-radius:var(--radius);font-size:.82rem;font-weight:700;transition:all .2s;display:flex;align-items:center;gap:.35rem}
+.btn-action svg{width:15px;height:15px;stroke:currentColor}
+.btn-reject{background:var(--red-bg);color:var(--red);border:1.5px solid var(--red-border)}
+.btn-reject:hover{background:var(--red);color:#fff}
+.btn-approve{background:var(--green);color:#fff;border:1.5px solid var(--green)}
+.btn-approve:hover{background:#047857}
+.btn-approve:disabled,.btn-reject:disabled{opacity:.5;cursor:not-allowed}
+.btn-print-modal{background:var(--purple-bg);color:var(--purple);border:1.5px solid var(--purple-border)}
+.btn-print-modal:hover{background:var(--purple);color:#fff}
+
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+@media(max-width:600px){.detail-grid{grid-template-columns:1fr}}
+.info-block{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.1rem}
+.info-block h4{font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem .75rem}
+.info-item .l{font-size:.75rem;color:var(--text3)}
+.info-item .v{font-weight:600;font-size:.85rem;color:var(--text)}
+.divider{border:none;border-top:1px solid var(--border);margin:.6rem 0}
+.kv-row{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;padding:.2rem 0}
+.kv-row .k{color:var(--text2)}
+.kv-row .v{font-weight:700;text-align:right}
+.kv-total{font-weight:800;font-size:.9rem}
+.result-block{background:linear-gradient(135deg,var(--green-bg),#f0fdf4);border:1.5px solid var(--green-border);border-radius:var(--radius-lg);padding:1rem 1.1rem}
+.result-block h4{font-size:.72rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}
+.result-total-row{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--green-border);border-radius:var(--radius);padding:.65rem .85rem;margin:.5rem 0}
+.result-total-label{font-weight:800;font-size:.85rem;color:var(--green)}
+.result-total-val{font-weight:900;font-size:1.4rem;color:var(--green)}
+.photos-block{margin-top:1.25rem}
+.photos-block h4{font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}
+.photos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+.photo-thumb{aspect-ratio:1;border-radius:8px;overflow:hidden;border:1px solid var(--border);cursor:zoom-in;transition:transform .2s,box-shadow .2s;position:relative}
+.photo-thumb:hover{transform:scale(1.03);box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.photo-thumb img{width:100%;height:100%;object-fit:cover}
+.no-photos{font-size:.8rem;color:var(--text3);font-style:italic}
+
+.obs-display{margin-top:.75rem;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--radius);padding:.65rem .85rem}
+.obs-display .obs-title{font-size:.72rem;font-weight:700;color:var(--amber);margin-bottom:.25rem}
+.obs-display p{font-size:.82rem;color:var(--text)}
+.obs-display.gerencial{background:var(--blue-bg);border-color:var(--blue-border)}
+.obs-display.gerencial .obs-title{color:var(--blue)}
+
+/* ── LIGHTBOX with zoom ── */
+#lightboxBackdrop{position:fixed;inset:0;background:rgba(5,5,10,.92);z-index:900;display:none;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+#lightboxBackdrop.open{display:flex}
+.lb-toolbar{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;z-index:10;background:linear-gradient(to bottom,rgba(0,0,0,.6),transparent)}
+.lb-toolbar-left{display:flex;align-items:center;gap:.5rem}
+.lb-counter{font-size:.82rem;color:rgba(255,255,255,.8);font-weight:600}
+.lb-zoom-hint{font-size:.72rem;color:rgba(255,255,255,.45);padding:.2rem .6rem;border-radius:20px;border:1px solid rgba(255,255,255,.15)}
+.lb-toolbar-right{display:flex;gap:.5rem}
+.lb-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;color:#fff}
+.lb-btn:hover{background:rgba(255,255,255,.3)}
+.lb-btn svg{width:18px;height:18px;stroke:currentColor;fill:none}
+.lb-btn.zoom-in-btn svg,.lb-btn.zoom-out-btn svg{stroke-width:2.5}
+.lb-stage{flex:1;width:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;cursor:grab}
+.lb-stage.grabbed{cursor:grabbing}
+.lb-stage.zoom-cursor{cursor:zoom-in}
+.lb-img-wrap{position:relative;display:inline-block;transition:none}
+#lightboxImg{display:block;max-width:90vw;max-height:82vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);pointer-events:none;user-select:none;transition:transform .15s ease}
+#lightboxImg.zoomed{max-width:none;max-height:none;border-radius:4px}
+.lb-nav{position:fixed;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;z-index:10}
+.lb-nav:hover{background:rgba(255,255,255,.3)}
+.lb-nav svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2.5}
+#lbPrev{left:1rem}
+#lbNext{right:1rem}
+.lb-zoom-bar{position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:.75rem;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);border-radius:30px;padding:.4rem .9rem;z-index:10}
+.lb-zoom-label{font-size:.78rem;font-weight:700;color:#fff;min-width:44px;text-align:center}
+.lb-zoom-track{width:100px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;cursor:pointer;position:relative}
+.lb-zoom-fill{height:100%;background:#fff;border-radius:2px;pointer-events:none}
+.lb-zoom-thumb{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%);pointer-events:none}
+
+/* ── CONFIRM MODAL ── */
+.confirm-modal{background:var(--surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);width:100%;max-width:440px;margin:auto;padding:1.75rem;animation:slideUp .2s ease}
+.confirm-modal h3{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:.4rem}
+.confirm-modal p{font-size:.85rem;color:var(--text2);line-height:1.6;margin-bottom:1rem}
+.confirm-obs-wrap{margin-bottom:1.1rem}
+.confirm-obs-wrap label{display:block;font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:.4rem}
+.confirm-obs-wrap textarea{width:100%;padding:.65rem .85rem;border:1.5px solid var(--border);border-radius:var(--radius);resize:vertical;min-height:80px;outline:none;font-size:.82rem;line-height:1.5;transition:border .2s;color:var(--text);background:var(--surface)}
+.confirm-obs-wrap textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(26,43,86,.07)}
+.confirm-actions{display:flex;gap:.75rem;justify-content:flex-end}
+.btn-cancel{padding:.6rem 1.1rem;border-radius:var(--radius);font-size:.82rem;font-weight:700;background:var(--surface);color:var(--text2);border:1.5px solid var(--border);transition:all .2s}
+.btn-cancel:hover{background:var(--surface2)}
+.confirm-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:1rem}
+.confirm-icon.approve{background:var(--green-bg)}
+.confirm-icon.approve svg{stroke:var(--green)}
+.confirm-icon.reject{background:var(--red-bg)}
+.confirm-icon.reject svg{stroke:var(--red)}
+.confirm-icon.revert{background:var(--amber-bg)}
+.confirm-icon.revert svg{stroke:var(--amber)}
+.confirm-icon svg{width:22px;height:22px;fill:none;stroke-width:2}
+
+/* ── REVERT PASSWORD MODAL ── */
+.revert-modal{background:var(--surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);width:100%;max-width:380px;margin:auto;padding:1.75rem;animation:slideUp .2s ease}
+.revert-modal h3{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:.3rem}
+.revert-modal p{font-size:.83rem;color:var(--text2);margin-bottom:1.1rem;line-height:1.5}
+.revert-pwd-wrap{position:relative;margin-bottom:1.1rem}
+.revert-pwd-wrap input{width:100%;padding:.7rem 2.5rem .7rem .9rem;border:1.5px solid var(--border);border-radius:var(--radius);outline:none;font-size:.9rem;color:var(--text);background:var(--surface);transition:border .2s}
+.revert-pwd-wrap input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(26,43,86,.08)}
+.revert-pwd-wrap input.error{border-color:var(--red)}
+.revert-eye{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text3)}
+.revert-eye svg{width:18px;height:18px;stroke:currentColor;fill:none}
+.revert-err{font-size:.78rem;color:var(--red);margin-top:-.7rem;margin-bottom:.75rem;display:none}
+.revert-err.show{display:block}
+.revert-actions{display:flex;gap:.75rem;justify-content:flex-end}
+.btn-revert-ok{padding:.6rem 1.1rem;border-radius:var(--radius);font-size:.82rem;font-weight:700;background:var(--amber);color:#fff;border:1.5px solid var(--amber);transition:all .2s;display:flex;align-items:center;gap:.35rem}
+.btn-revert-ok:hover{background:#b45309}
+
+/* ── PDF hidden ── */
+#pdfContent{position:absolute;left:-9999px;top:0;width:794px;font-family:'Inter',sans-serif;font-size:12px;background:#fff;padding:2.5rem}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
 </head>
-<body class="bg-gray-50 font-sans text-gray-900 antialiased min-h-screen flex flex-col">
+<body>
 
-<div id="loginContainer" class="flex-1 items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
-        <div class="text-center mb-8">
-            <h1 class="text-2xl font-extrabold text-brand-900">MarquesCheck <span class="text-amber-500">Admin</span></h1>
-            <p class="text-sm text-gray-500 mt-1">Ingresa tus credenciales para continuar</p>
-        </div>
-        <form id="loginForm" class="space-y-5">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Correo Electrónico</label>
-                <input type="email" id="email" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-100 focus:border-brand-600 outline-none transition">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Contraseña</label>
-                <input type="password" id="password" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-100 focus:border-brand-600 outline-none transition">
-            </div>
-            <button type="submit" id="btnLogin" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl transition shadow-md">
-                Iniciar Sesión
-            </button>
-        </form>
+<!-- LOGIN -->
+<div id="loginWrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>MarquesCheck <span>Admin</span></h1>
+      <p>Panel de Compensaciones · Ingresa tus credenciales</p>
     </div>
+    <form id="loginForm">
+      <div class="field"><label>Correo electrónico</label><input type="email" id="loginEmail" required placeholder="correo@empresa.com"></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="loginPwd" required placeholder="••••••••"></div>
+      <button type="submit" class="btn-primary" id="btnLogin">Iniciar sesión</button>
+    </form>
+  </div>
 </div>
 
-<div id="appContainer" class="flex-1 flex-col">
-    <header class="bg-[#1a2b56] shadow-md px-6 py-4 flex justify-between items-center z-20 relative">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            </div>
-            <h1 class="text-xl font-extrabold text-white">Panel de <span class="text-amber-400">Compensaciones</span></h1>
-        </div>
-        <button id="btnLogout" class="text-sm font-semibold text-blue-200 hover:text-white transition">Cerrar Sesión</button>
-    </header>
-
-    <main class="flex-1 max-w-6xl w-full mx-auto p-6">
-        <div class="flex gap-6 border-b border-gray-200 mb-6">
-            <button class="tab-btn tab-active pb-3 px-2 transition" data-status="PENDIENTE">⏳ Pendientes</button>
-            <button class="tab-btn tab-inactive pb-3 px-2 transition" data-status="APROBADO">✅ Procesados (Aprobados)</button>
-            <button class="tab-btn tab-inactive pb-3 px-2 transition" data-status="RECHAZADO">❌ Rechazados</button>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
-                            <th class="p-4 font-bold">Fecha</th>
-                            <th class="p-4 font-bold">Vendedor</th>
-                            <th class="p-4 font-bold">Cliente</th>
-                            <th class="p-4 font-bold">Producto</th>
-                            <th class="p-4 font-bold">Tipo Cierre</th>
-                            <th class="p-4 font-bold text-right">Monto ($)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody" class="text-sm divide-y divide-gray-100">
-                        </tbody>
-                </table>
-            </div>
-            <div id="emptyState" class="hidden p-10 text-center text-gray-500">
-                <p class="font-medium">No hay registros en esta categoría.</p>
-            </div>
-        </div>
-    </main>
-</div>
-
-<div id="detailModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[1000] hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="detailPanel">
-        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <div>
-                <h3 class="text-lg font-extrabold text-gray-900">Detalle de Compensación</h3>
-                <p id="modalSubtitle" class="text-sm text-gray-500">ID: ...</p>
-            </div>
-            <button id="btnCloseModal" class="text-gray-400 hover:text-gray-600 bg-gray-200 hover:bg-gray-300 p-2 rounded-full transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        
-        <div class="p-6 overflow-y-auto flex-1 bg-white space-y-6" id="modalContent">
-            </div>
-
-        <div id="modalActions" class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-            <button id="btnEditar" class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition">✏️ Editar Obs.</button>
-            <button id="btnRechazar" class="px-5 py-2.5 bg-red-100 text-red-700 font-bold rounded-xl hover:bg-red-200 transition">❌ Rechazar</button>
-            <button id="btnAprobar" class="px-5 py-2.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition shadow-md">✅ Aprobar</button>
-        </div>
+<!-- APP -->
+<div id="appWrap">
+  <header>
+    <div class="header-logo">
+      <div class="header-logo-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      </div>
+      <h1>Panel de <span>Compensaciones</span></h1>
     </div>
+    <div class="header-right">
+      <span class="header-user" id="headerUser"></span>
+      <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
+    </div>
+  </header>
+  <main>
+    <div class="tabs-bar">
+      <button class="tab-btn active" data-tab="PENDIENTE">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2"/></svg>
+        Pendientes <span class="tab-count" id="cntPend">0</span>
+      </button>
+      <button class="tab-btn" data-tab="RESULTADO">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Resultados <span class="tab-count" id="cntResult">0</span>
+      </button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="label">Clientes</div><div class="value" id="statClients">0</div><div class="sub">con reconocimientos</div></div>
+      <div class="stat-card"><div class="label">SKUs</div><div class="value" id="statSkus">0</div><div class="sub">compensaciones</div></div>
+      <div class="stat-card green"><div class="label">Total $</div><div class="value" id="statTotal">$0</div><div class="sub">a compensar</div></div>
+      <div class="stat-card amber"><div class="label">Promedio</div><div class="value" id="statAvg">$0</div><div class="sub">por compensación</div></div>
+    </div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por cliente, vendedor o producto…">
+      </div>
+      <select id="filterPromotor" class="filter-select"><option value="">Todos los vendedores</option></select>
+      <select id="filterProducto" class="filter-select"><option value="">Todos los productos</option></select>
+      <button class="btn-clear-filters" id="btnClearFilters">Limpiar</button>
+    </div>
+    <div class="groups-list" id="groupsList"></div>
+  </main>
 </div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-backdrop" id="detailBackdrop">
+  <div class="detail-modal">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <h3 id="mTitle">Detalle de compensación</h3>
+        <p id="mSubtitle">ID: ...</p>
+      </div>
+      <button class="btn-close-modal" id="btnCloseDetail">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+    <div class="modal-footer" id="mFooter">
+      <div class="modal-footer-row" id="mObsRow">
+        <span class="obs-label">Obs. gerencia:</span>
+        <input type="text" id="mGerencialInput" class="obs-input-inline" placeholder="Observación de aprobación / rechazo (gerencia)…">
+      </div>
+      <div class="modal-footer-row actions-row" id="mActions">
+        <button class="btn-action btn-print-modal" id="btnPrintSku">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          Imprimir
+        </button>
+        <button class="btn-action btn-reject" id="btnReject">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          Rechazar
+        </button>
+        <button class="btn-action btn-approve" id="btnApprove">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Aprobar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-backdrop" id="confirmBackdrop">
+  <div class="confirm-modal">
+    <div class="confirm-icon" id="confirmIcon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+    <h3 id="confirmTitle">¿Confirmar acción?</h3>
+    <p id="confirmDesc">Esta acción actualizará el estado del registro.</p>
+    <div class="confirm-obs-wrap">
+      <label>Observación de Gerencia</label>
+      <textarea id="confirmObs" placeholder="Ej: Documentación verificada. Aprobado conforme a política vigente."></textarea>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" id="btnConfirmCancel">Cancelar</button>
+      <button class="btn-action btn-approve" id="btnConfirmOk">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- REVERT PASSWORD MODAL -->
+<div class="modal-backdrop" id="revertBackdrop">
+  <div class="revert-modal">
+    <div class="confirm-icon revert" style="margin-bottom:.9rem">
+      <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+    </div>
+    <h3>Revertir a Pendiente</h3>
+    <p id="revertDesc">Esta acción devolverá el SKU a estado <strong>Pendiente</strong> para ser evaluado nuevamente. Ingresa la clave de autorización.</p>
+    <div class="revert-pwd-wrap">
+      <input type="password" id="revertPwdInput" placeholder="Clave de gerencia…">
+      <span class="revert-eye" id="revertEyeToggle">
+        <svg id="revertEyeIcon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+      </span>
+    </div>
+    <div class="revert-err" id="revertErr">Clave incorrecta. Intenta nuevamente.</div>
+    <div class="revert-actions">
+      <button class="btn-cancel" id="btnRevertCancel">Cancelar</button>
+      <button class="btn-revert-ok" id="btnRevertOk">
+        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Revertir
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX with zoom -->
+<div id="lightboxBackdrop">
+  <div class="lb-toolbar">
+    <div class="lb-toolbar-left">
+      <span class="lb-counter" id="lbCounter">1 / 1</span>
+      <span class="lb-zoom-hint" id="lbZoomHint">Doble clic para zoom · Rueda para ampliar</span>
+    </div>
+    <div class="lb-toolbar-right">
+      <button class="lb-btn zoom-out-btn" id="lbZoomOut" title="Alejar">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
+      </button>
+      <button class="lb-btn zoom-in-btn" id="lbZoomIn" title="Acercar">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/></svg>
+      </button>
+      <button class="lb-btn" id="lbFullscreen" title="Pantalla completa">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+      </button>
+      <button class="lb-btn" id="lbClose" title="Cerrar (Esc)">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+  <button class="lb-nav" id="lbPrev"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
+  <div class="lb-stage" id="lbStage">
+    <div class="lb-img-wrap" id="lbImgWrap">
+      <img id="lightboxImg" src="" alt="Evidencia">
+    </div>
+  </div>
+  <button class="lb-nav" id="lbNext"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
+  <div class="lb-zoom-bar">
+    <button class="lb-btn" id="lbReset" title="Restablecer" style="width:28px;height:28px;font-size:.7rem;font-weight:700;color:#fff;background:rgba(255,255,255,.15);border-radius:4px;border:none">1:1</button>
+    <span class="lb-zoom-label" id="lbZoomLabel">100%</span>
+    <div class="lb-zoom-track" id="lbZoomTrack">
+      <div class="lb-zoom-fill" id="lbZoomFill" style="width:25%"></div>
+      <div class="lb-zoom-thumb" id="lbZoomThumb" style="left:25%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF hidden -->
+<div id="pdfContent"></div>
 
 <script>
-// ─── Supabase ─────────────────────────────────────────────────
 const SUPABASE_URL      = 'https://zgbsrbjtjnozpzxifpua.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnYnNyYmp0am5venB6eGlmcHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzNjI5MjUsImV4cCI6MjA2OTkzODkyNX0.zHVKe6Ab73PFhQqD3Au94x1Z71hMyRpxE1PCWP8-QTI';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ─── Estado y UI ──────────────────────────────────────────────
-let currentStatus = 'PENDIENTE';
-let compensaciones = [];
+const REVERT_PASS = 'chispa26';
+
+let currentTab = 'PENDIENTE';
+let allRecords = [];
+let filteredRecords = [];
 let currentRecord = null;
+let pendingAction = null;
+let revertRecordId = null;
 
-const loginContainer = document.getElementById('loginContainer');
-const appContainer = document.getElementById('appContainer');
-const tableBody = document.getElementById('tableBody');
-const emptyState = document.getElementById('emptyState');
-const modal = document.getElementById('detailModal');
-const detailPanel = document.getElementById('detailPanel');
-
-// ─── Autenticación ────────────────────────────────────────────
+// ── AUTH ────────────────────────────────────────────────────
 async function checkUser() {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-        loginContainer.style.display = 'none';
-        appContainer.style.display = 'flex';
-        loadData();
-    } else {
-        loginContainer.style.display = 'flex';
-        appContainer.style.display = 'none';
-    }
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('appWrap').style.display = 'flex';
+    document.getElementById('headerUser').textContent = session.user.email;
+    loadAllCounts(); loadData();
+  } else {
+    document.getElementById('loginWrap').style.display = 'flex';
+    document.getElementById('appWrap').style.display = 'none';
+  }
+}
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('btnLogin');
+  btn.textContent = 'Verificando…'; btn.disabled = true;
+  const { error } = await sb.auth.signInWithPassword({
+    email: document.getElementById('loginEmail').value,
+    password: document.getElementById('loginPwd').value
+  });
+  btn.textContent = 'Iniciar sesión'; btn.disabled = false;
+  if (error) { alert('Error: ' + error.message); return; }
+  checkUser();
+});
+document.getElementById('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); checkUser(); });
+
+// ── COUNTS ──────────────────────────────────────────────────
+async function loadAllCounts() {
+  const { count: cntP } = await sb.from('compensaciones').select('*',{count:'exact',head:true}).eq('estado_proceso','PENDIENTE');
+  document.getElementById('cntPend').textContent = cntP || 0;
+  const { count: cntA } = await sb.from('compensaciones').select('*',{count:'exact',head:true}).eq('estado_proceso','APROBADO');
+  const { count: cntR } = await sb.from('compensaciones').select('*',{count:'exact',head:true}).eq('estado_proceso','RECHAZADO');
+  document.getElementById('cntResult').textContent = (cntA||0)+(cntR||0);
 }
 
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('btnLogin');
-    btn.textContent = 'Verificando...'; btn.disabled = true;
-    const { error } = await sb.auth.signInWithPassword({
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value
-    });
-    btn.textContent = 'Iniciar Sesión'; btn.disabled = false;
-    
-    if (error) alert('Error: ' + error.message);
-    else checkUser();
-});
-
-document.getElementById('btnLogout').addEventListener('click', async () => {
-    await sb.auth.signOut();
-    checkUser();
-});
-
-// ─── Carga de Datos ───────────────────────────────────────────
+// ── LOAD DATA ───────────────────────────────────────────────
 async function loadData() {
-    tableBody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-500">Cargando registros...</td></tr>';
-    
-    const { data, error } = await sb
-        .from('compensaciones')
-        .select('*')
-        .eq('estado_proceso', currentStatus)
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        alert('Error al cargar datos: ' + error.message);
-        return;
-    }
-
-    compensaciones = data;
-    renderTable();
+  document.getElementById('groupsList').innerHTML = '<div class="loading-row">Cargando registros…</div>';
+  let query = sb.from('compensaciones').select('*').order('created_at',{ascending:false});
+  if (currentTab === 'PENDIENTE') query = query.eq('estado_proceso','PENDIENTE');
+  else query = query.in('estado_proceso',['APROBADO','RECHAZADO']);
+  const { data, error } = await query;
+  if (error) { alert('Error: '+error.message); return; }
+  allRecords = data || [];
+  populateFilters(); applyFilters();
 }
 
-function renderTable() {
-    tableBody.innerHTML = '';
-    if (compensaciones.length === 0) {
-        emptyState.classList.remove('hidden');
-    } else {
-        emptyState.classList.add('hidden');
-        compensaciones.forEach(row => {
-            const tr = document.createElement('tr');
-            tr.className = 'hover:bg-brand-50 cursor-pointer transition border-b border-gray-50';
-            tr.onclick = () => openModal(row);
-            
-            const date = new Date(row.created_at).toLocaleDateString('es-VE', { day:'2-digit', month:'short', year:'numeric' });
-            
-            tr.innerHTML = `
-                <td class="p-4 whitespace-nowrap text-gray-600">${date}</td>
-                <td class="p-4 font-semibold text-brand-900">${row.promotor_nombre}</td>
-                <td class="p-4 text-gray-800">${row.cliente_nombre}</td>
-                <td class="p-4"><span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-bold">${row.producto}</span></td>
-                <td class="p-4"><span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold">${row.tipo_cierre}</span></td>
-                <td class="p-4 font-extrabold text-green-600 text-right">$${row.total_compensar.toFixed(2)}</td>
-            `;
-            tableBody.appendChild(tr);
-        });
-    }
+// ── FILTERS ─────────────────────────────────────────────────
+function populateFilters() {
+  const promotores = [...new Set(allRecords.map(r=>r.promotor_nombre))].sort();
+  const productos  = [...new Set(allRecords.map(r=>r.producto))].sort();
+  const fpEl = document.getElementById('filterPromotor');
+  const fpProd = document.getElementById('filterProducto');
+  const sP = fpEl.value, sPr = fpProd.value;
+  fpEl.innerHTML  = '<option value="">Todos los vendedores</option>'+promotores.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  fpProd.innerHTML= '<option value="">Todos los productos</option>'+productos.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  fpEl.value=sP; fpProd.value=sPr;
 }
-
-// ─── Navegación por Tabs ──────────────────────────────────────
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.tab-btn').forEach(b => {
-            b.classList.remove('tab-active');
-            b.classList.add('tab-inactive');
-        });
-        e.target.classList.remove('tab-inactive');
-        e.target.classList.add('tab-active');
-        
-        currentStatus = e.target.dataset.status;
-        loadData();
-    });
+function applyFilters() {
+  const q    = document.getElementById('searchInput').value.toLowerCase().trim();
+  const prom = document.getElementById('filterPromotor').value;
+  const prod = document.getElementById('filterProducto').value;
+  filteredRecords = allRecords.filter(r => {
+    const matchQ    = !q    || [r.cliente_nombre,r.promotor_nombre,r.producto,r.numero_factura].some(v=>v&&v.toLowerCase().includes(q));
+    const matchProm = !prom || r.promotor_nombre===prom;
+    const matchProd = !prod || r.producto===prod;
+    return matchQ&&matchProm&&matchProd;
+  });
+  updateStats(); renderGroups();
+}
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+document.getElementById('filterPromotor').addEventListener('change', applyFilters);
+document.getElementById('filterProducto').addEventListener('change', applyFilters);
+document.getElementById('btnClearFilters').addEventListener('click', () => {
+  document.getElementById('searchInput').value='';
+  document.getElementById('filterPromotor').value='';
+  document.getElementById('filterProducto').value='';
+  applyFilters();
 });
 
-// ─── Modal y Detalle ──────────────────────────────────────────
-function openModal(data) {
-    currentRecord = data;
-    document.getElementById('modalSubtitle').textContent = `Registro: ${data.id} | Creado: ${new Date(data.created_at).toLocaleString('es-VE')}`;
-    
-    // Controles de botones según estado
-    const actions = document.getElementById('modalActions');
-    if(data.estado_proceso === 'PENDIENTE') {
-        actions.style.display = 'flex';
+// ── STATS ───────────────────────────────────────────────────
+function updateStats() {
+  const clients = new Set(filteredRecords.map(r=>r.cliente_nombre)).size;
+  const total = filteredRecords.filter(r=>r.estado_proceso==='APROBADO'||r.estado_proceso==='PENDIENTE').reduce((s,r)=>s+(r.total_compensar||0),0);
+  const avg   = filteredRecords.length ? filteredRecords.reduce((s,r)=>s+(r.total_compensar||0),0)/filteredRecords.length : 0;
+  document.getElementById('statClients').textContent = clients;
+  document.getElementById('statSkus').textContent    = filteredRecords.length;
+  document.getElementById('statTotal').textContent   = '$'+total.toFixed(2);
+  document.getElementById('statAvg').textContent     = filteredRecords.length ? '$'+avg.toFixed(2) : '$0';
+}
+
+// ── RENDER GROUPS ───────────────────────────────────────────
+function renderGroups() {
+  const gl = document.getElementById('groupsList');
+  if (!filteredRecords.length) {
+    gl.innerHTML=`<div class="empty-state"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p>No hay registros en esta categoría.</p></div>`;
+    return;
+  }
+  const groups={};
+  filteredRecords.forEach(r=>{
+    if(!groups[r.cliente_nombre]) groups[r.cliente_nombre]={cliente:r.cliente_nombre,promotor:r.promotor_nombre,items:[]};
+    groups[r.cliente_nombre].items.push(r);
+  });
+  gl.innerHTML='';
+  Object.values(groups).forEach(g=>{
+    const totalGrupo = g.items.filter(i=>i.estado_proceso==='APROBADO'||i.estado_proceso==='PENDIENTE').reduce((s,i)=>s+(i.total_compensar||0),0);
+    const initials   = g.cliente.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    let badgeClass='', badgeLabel='';
+    if(currentTab==='PENDIENTE'){
+      badgeLabel=`${g.items.length} pendiente${g.items.length>1?'s':''}`;
     } else {
-        actions.style.display = 'none'; // Si ya se aprobó o rechazó, ocultamos las acciones.
+      const apros=g.items.filter(i=>i.estado_proceso==='APROBADO').length;
+      const rechs=g.items.filter(i=>i.estado_proceso==='RECHAZADO').length;
+      if(apros>0&&rechs===0){badgeClass='green';badgeLabel=`${apros} aprobado${apros>1?'s':''}`;}
+      else if(rechs>0&&apros===0){badgeClass='red';badgeLabel=`${rechs} rechazado${rechs>1?'s':''}`;}
+      else{badgeClass='mixed';badgeLabel=`${apros} apr · ${rechs} rec`;}
     }
-
-    const html = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-6">
-                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-3">Información General</h4>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div><p class="text-gray-500">Vendedor</p><p class="font-bold">${data.promotor_nombre}</p></div>
-                        <div><p class="text-gray-500">Cliente</p><p class="font-bold">${data.cliente_nombre}</p></div>
-                        <div><p class="text-gray-500">Producto</p><p class="font-bold text-brand-700">${data.producto}</p></div>
-                        <div><p class="text-gray-500">Tipo de Cierre</p><p class="font-bold">${data.tipo_cierre} ${data.precio_fijo_cliente ? `($${data.precio_fijo_cliente})` : ''}</p></div>
-                    </div>
-                    ${data.observaciones ? `<div class="mt-3 pt-3 border-t border-gray-200"><p class="text-gray-500 text-xs">Observaciones</p><p class="text-sm text-gray-800">${data.observaciones}</p></div>` : ''}
-                </div>
-
-                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                    <h4 class="text-xs font-bold text-blue-800 uppercase mb-3">Factura Anterior: ${data.numero_factura}</h4>
-                    <div class="grid grid-cols-2 gap-2 text-sm">
-                        <p class="text-gray-600">Pacas Compradas:</p><p class="font-bold text-right">${data.pacas_factura}</p>
-                        <p class="text-gray-600">Pacas Promo:</p><p class="font-bold text-right">${data.promo_regalo}</p>
-                        <p class="text-gray-600">Precio Bruto:</p><p class="font-bold text-right">$${data.precio_compra}</p>
-                        <p class="text-gray-600">Prontopago:</p><p class="font-bold text-right">${data.prontopago_anterior_pct || 0}%</p>
-                        <div class="col-span-2 border-t border-blue-200 my-1"></div>
-                        <p class="text-blue-800 font-bold">Precio Neto Final:</p><p class="font-extrabold text-blue-800 text-right">$${data.precio_anterior}</p>
-                    </div>
-                </div>
-
-                <div class="bg-amber-50 p-4 rounded-xl border border-amber-100">
-                    <h4 class="text-xs font-bold text-amber-800 uppercase mb-3">Valores Nuevos de Mercado</h4>
-                    <div class="grid grid-cols-2 gap-2 text-sm">
-                        <p class="text-gray-600">Pacas Estimadas:</p><p class="font-bold text-right">${data.pacas_totales}</p>
-                        <p class="text-gray-600">Pacas Promo:</p><p class="font-bold text-right">${data.pacas_regaladas}</p>
-                        <p class="text-gray-600">Precio Bruto:</p><p class="font-bold text-right">$${data.precio_actual}</p>
-                        <p class="text-gray-600">Prontopago:</p><p class="font-bold text-right">${data.prontopago_actual_pct || 0}%</p>
-                        <div class="col-span-2 border-t border-amber-200 my-1"></div>
-                        <p class="text-amber-800 font-bold">Precio Neto Final:</p><p class="font-extrabold text-amber-800 text-right">$${data.precio_final}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <div class="bg-green-50 p-5 rounded-xl border border-green-200 shadow-inner">
-                    <h4 class="text-xs font-bold text-green-800 uppercase mb-4">Resultado de Compensación</h4>
-                    <div class="space-y-3 text-sm">
-                        <div class="flex justify-between"><span class="text-gray-600">Inv. a Reconocer:</span><span class="font-bold">${data.pacas_a_reconocer} pacas</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">Diferencia / Paca:</span><span class="font-bold text-orange-600">$${data.diferencia_paca}</span></div>
-                        <div class="flex justify-between items-center py-3 border-t border-b border-green-200 bg-green-100/50 -mx-5 px-5 my-2">
-                            <span class="font-extrabold text-green-800">TOTAL NOTA CRÉDITO:</span>
-                            <span class="font-black text-2xl text-green-700">$${data.total_compensar}</span>
-                        </div>
-                        <div class="flex justify-between"><span class="text-gray-600">Equivalente en prod:</span><span class="font-bold text-brand-700">+${data.pacas_a_entregar} pacas</span></div>
-                    </div>
-                </div>
-
-                <div>
-                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-3">Evidencias Fotográficas (${data.fotos_inventario ? data.fotos_inventario.length : 0})</h4>
-                    ${data.fotos_inventario && data.fotos_inventario.length > 0 ? `
-                        <div class="grid grid-cols-3 gap-2">
-                            ${data.fotos_inventario.map(url => `
-                                <a href="${url}" target="_blank" class="block aspect-square rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition">
-                                    <img src="${url}" class="w-full h-full object-cover">
-                                </a>
-                            `).join('')}
-                        </div>
-                    ` : '<p class="text-sm text-gray-400 italic">No se adjuntaron fotos.</p>'}
-                </div>
-            </div>
+    const sid = sanitizeId(g.cliente);
+    const pdfBtns = currentTab==='RESULTADO' ? `
+      <div class="group-pdf-btns">
+        <button class="group-btn-pdf print" onclick="event.stopPropagation();printGroupPDF('${sid}')" title="Imprimir">
+          <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          Imprimir
+        </button>
+        <button class="group-btn-pdf" onclick="event.stopPropagation();exportGroupPDF('${sid}')" title="Descargar PDF">
+          <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Descargar PDF
+        </button>
+      </div>` : '';
+    const el=document.createElement('div');
+    el.className='client-group';
+    el.innerHTML=`
+      <div class="group-header" id="gh-${sid}" onclick="toggleGroup('${sid}')">
+        <div class="group-avatar">${initials}</div>
+        <div class="group-info"><div class="group-name">${esc(g.cliente)}</div><div class="group-meta">Vendedor: ${esc(g.promotor)}</div></div>
+        <div class="group-summary">
+          ${pdfBtns}
+          <span class="group-badge ${badgeClass}">${badgeLabel}</span>
+          <span class="group-total">$${totalGrupo.toFixed(2)}</span>
+          <svg class="group-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
         </div>
-    `;
-    
-    document.getElementById('modalContent').innerHTML = html;
-    
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => {
-        detailPanel.classList.remove('scale-95', 'opacity-0');
-        detailPanel.classList.add('scale-100', 'opacity-100');
-    }, 10);
+      </div>
+      <div class="group-items" id="gi-${sid}">${g.items.map(renderSkuRow).join('')}</div>`;
+    gl.appendChild(el);
+  });
 }
 
-function closeModal() {
-    detailPanel.classList.remove('scale-100', 'opacity-100');
-    detailPanel.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => {
-        modal.classList.remove('flex');
-        modal.classList.add('hidden');
-        currentRecord = null;
-    }, 300);
+function renderSkuRow(item) {
+  const date = new Date(item.created_at).toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'numeric'});
+  const st = item.estado_proceso;
+  const statusTag = st==='PENDIENTE' ? '<span class="sku-status status-pending">Pendiente</span>'
+    : st==='APROBADO' ? '<span class="sku-status status-approved">Aprobado</span>'
+    : '<span class="sku-status status-rejected">Rechazado</span>';
+  // Revert button only in RESULTADO tab, on each SKU row
+  const revertBtn = currentTab==='RESULTADO' ? `
+    <button class="group-btn-pdf revert" onclick="event.stopPropagation();openRevertModal(${item.id})" title="Revertir a Pendiente" style="padding:.2rem .5rem;font-size:.68rem">
+      <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      Revertir
+    </button>` : '';
+  return `
+    <div class="sku-row" onclick="openDetailModal('${item.id}')">
+      <div class="sku-info">
+        <div class="sku-product">${esc(item.producto)}</div>
+        <div class="sku-meta">
+          <span class="tag tag-purple">${esc(item.tipo_cierre)}</span>
+          <span class="tag tag-blue">Fac: ${esc(item.numero_factura)}</span>
+          <span class="tag tag-amber">${item.pacas_a_reconocer} pacas</span>
+          ${statusTag}
+          ${revertBtn}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <div style="text-align:right">
+          <div class="sku-amount">$${(item.total_compensar||0).toFixed(2)}</div>
+          <div class="sku-date">${date}</div>
+        </div>
+        <div class="sku-arrow"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div>
+      </div>
+    </div>`;
 }
 
-document.getElementById('btnCloseModal').addEventListener('click', closeModal);
-modal.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
-
-// ─── Acciones (Aprobar / Rechazar / Editar) ───────────────────
-async function updateStatus(newStatus) {
-    if (!currentRecord) return;
-    
-    // Mostramos estado de carga en el botón
-    const btn = newStatus === 'APROBADO' ? document.getElementById('btnAprobar') : document.getElementById('btnRechazar');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = 'Procesando...';
-    btn.disabled = true;
-
-    const { error } = await sb
-        .from('compensaciones')
-        .update({ estado_proceso: newStatus })
-        .eq('id', currentRecord.id);
-
-    if (error) {
-        alert('Error al actualizar: ' + error.message);
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        return;
-    }
-
-    closeModal();
-    loadData(); // Recarga la tabla para reflejar el cambio
+function toggleGroup(id) {
+  const hdr=document.getElementById('gh-'+id), items=document.getElementById('gi-'+id);
+  if(!hdr||!items) return;
+  const o=hdr.classList.contains('open');
+  hdr.classList.toggle('open',!o); items.classList.toggle('open',!o);
 }
 
-document.getElementById('btnAprobar').addEventListener('click', () => {
-    if(confirm('¿Estás seguro de APROBAR esta compensación?')) {
-        updateStatus('APROBADO');
-    }
+// ── DETAIL MODAL ────────────────────────────────────────────
+function openDetailModal(id) {
+  const data=allRecords.find(r=>String(r.id)===String(id));
+  if(!data) return;
+  currentRecord=data;
+  document.getElementById('mTitle').textContent=esc(data.producto)+' — '+esc(data.cliente_nombre);
+  document.getElementById('mSubtitle').textContent=`ID ${data.id} · ${new Date(data.created_at).toLocaleString('es-VE')}`;
+  const isPending=data.estado_proceso==='PENDIENTE';
+  const gi=document.getElementById('mGerencialInput');
+  gi.value=data.observaciones_gerencial||'';
+  gi.disabled=!isPending;
+  gi.placeholder=isPending?'Observación de aprobación / rechazo (gerencia)…':(data.observaciones_gerencial?'':'Sin observación de gerencia');
+  document.getElementById('btnApprove').style.display=isPending?'':'none';
+  document.getElementById('btnReject').style.display=isPending?'':'none';
+
+  const photos=data.fotos_inventario||[];
+  lbPhotos=photos; lbIdx=0;
+
+  const photosHtml=photos.length>0?`<div class="photos-grid">${photos.map((url,i)=>`
+    <div class="photo-thumb" onclick="openLightbox(${i})" title="Ver / Ampliar imagen ${i+1}">
+      <img src="${url}" alt="Evidencia ${i+1}" loading="lazy">
+    </div>`).join('')}</div>`:'<p class="no-photos">No se adjuntaron fotos de inventario.</p>';
+
+  const obsV=data.observaciones?`<div class="obs-display"><div class="obs-title">Obs. del vendedor</div><p>${esc(data.observaciones)}</p></div>`:'';
+  const obsG=(!isPending&&data.observaciones_gerencial)?`<div class="obs-display gerencial"><div class="obs-title">Obs. de gerencia</div><p>${esc(data.observaciones_gerencial)}</p></div>`:'';
+
+  document.getElementById('mBody').innerHTML=`
+    <div class="detail-grid">
+      <div>
+        <div class="info-block" style="margin-bottom:1rem">
+          <h4>Información General</h4>
+          <div class="info-grid">
+            <div class="info-item"><div class="l">Vendedor</div><div class="v">${esc(data.promotor_nombre)}</div></div>
+            <div class="info-item"><div class="l">Cliente</div><div class="v">${esc(data.cliente_nombre)}</div></div>
+            <div class="info-item"><div class="l">Producto</div><div class="v">${esc(data.producto)}</div></div>
+            <div class="info-item"><div class="l">Tipo Cierre</div><div class="v">${esc(data.tipo_cierre)}${data.precio_fijo_cliente?' ($'+data.precio_fijo_cliente+')':''}</div></div>
+          </div>${obsV}${obsG}
+        </div>
+        <div class="info-block" style="background:var(--blue-bg);border-color:var(--blue-border);margin-bottom:1rem">
+          <h4 style="color:var(--blue)">Factura Anterior · ${esc(data.numero_factura)}</h4>
+          <div class="kv-row"><span class="k">Pacas compradas</span><span class="v">${data.pacas_factura}</span></div>
+          <div class="kv-row"><span class="k">Pacas promo/regalo</span><span class="v">${data.promo_regalo}</span></div>
+          <div class="kv-row"><span class="k">Precio bruto</span><span class="v">$${data.precio_compra}</span></div>
+          <div class="kv-row"><span class="k">Prontopago</span><span class="v">${data.prontopago_anterior_pct||0}%</span></div>
+          <hr class="divider">
+          <div class="kv-row kv-total" style="color:var(--blue)"><span class="k">Precio neto final</span><span class="v">$${data.precio_anterior}</span></div>
+        </div>
+        <div class="info-block" style="background:var(--amber-bg);border-color:var(--amber-border)">
+          <h4 style="color:var(--amber)">Valores Actuales de Mercado</h4>
+          <div class="kv-row"><span class="k">Pacas estimadas</span><span class="v">${data.pacas_totales}</span></div>
+          <div class="kv-row"><span class="k">Pacas regaladas</span><span class="v">${data.pacas_regaladas}</span></div>
+          <div class="kv-row"><span class="k">Precio bruto</span><span class="v">$${data.precio_actual}</span></div>
+          <div class="kv-row"><span class="k">Prontopago</span><span class="v">${data.prontopago_actual_pct||0}%</span></div>
+          <hr class="divider">
+          <div class="kv-row kv-total" style="color:var(--amber)"><span class="k">Precio neto final</span><span class="v">$${data.precio_final}</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="result-block" style="margin-bottom:1rem">
+          <h4>Resultado de Compensación</h4>
+          <div class="kv-row"><span class="k">Inv. a reconocer</span><span class="v">${data.pacas_a_reconocer} pacas</span></div>
+          <div class="kv-row"><span class="k">Diferencia / paca</span><span class="v" style="color:var(--amber)">$${data.diferencia_paca}</span></div>
+          <div class="result-total-row"><span class="result-total-label">Total nota crédito</span><span class="result-total-val">$${data.total_compensar}</span></div>
+          <div class="kv-row"><span class="k">Equivalente en producto</span><span class="v" style="color:var(--blue)">+${data.pacas_a_entregar} pacas</span></div>
+        </div>
+        <div class="photos-block"><h4>Evidencias fotográficas (${photos.length})</h4>${photosHtml}</div>
+      </div>
+    </div>`;
+  document.getElementById('detailBackdrop').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeDetailModal(){
+  document.getElementById('detailBackdrop').classList.remove('open');
+  document.body.style.overflow=''; currentRecord=null;
+}
+document.getElementById('btnCloseDetail').addEventListener('click',closeDetailModal);
+document.getElementById('detailBackdrop').addEventListener('click',e=>{if(e.target===document.getElementById('detailBackdrop'))closeDetailModal();});
+
+// ── PRINT single SKU ────────────────────────────────────────
+document.getElementById('btnPrintSku').addEventListener('click',()=>{
+  if(!currentRecord) return;
+  buildPdfContent([currentRecord]);
+  const w=window.open('','_blank');
+  w.document.write('<html><head><title>Compensación</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"><style>body{font-family:Inter,sans-serif;font-size:12px;padding:2rem;color:#111}'+getPdfStyles()+'</style></head><body>');
+  w.document.write(document.getElementById('pdfContent').innerHTML);
+  w.document.write('</body></html>'); w.document.close(); w.focus();
+  setTimeout(()=>w.print(),700);
 });
 
-document.getElementById('btnRechazar').addEventListener('click', () => {
-    if(confirm('¿Estás seguro de RECHAZAR esta compensación?')) {
-        updateStatus('RECHAZADO');
-    }
+// ── APPROVE / REJECT ────────────────────────────────────────
+function triggerAction(action){
+  if(!currentRecord) return;
+  const gerObs=document.getElementById('mGerencialInput').value.trim();
+  pendingAction={action,obs:gerObs,recordId:currentRecord.id};
+  const isApro=action==='APROBADO';
+  const ci=document.getElementById('confirmIcon');
+  ci.className='confirm-icon '+(isApro?'approve':'reject');
+  ci.innerHTML=isApro?'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>':'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+  document.getElementById('confirmTitle').textContent=isApro?'¿Aprobar esta compensación?':'¿Rechazar esta compensación?';
+  document.getElementById('confirmDesc').textContent=`${esc(currentRecord.producto)} · ${esc(currentRecord.cliente_nombre)} · $${(currentRecord.total_compensar||0).toFixed(2)}`;
+  document.getElementById('confirmObs').value=gerObs;
+  const ok=document.getElementById('btnConfirmOk');
+  ok.className='btn-action '+(isApro?'btn-approve':'btn-reject');
+  ok.innerHTML=isApro?'<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Confirmar aprobación':'<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg> Confirmar rechazo';
+  document.getElementById('confirmBackdrop').classList.add('open');
+}
+document.getElementById('btnApprove').addEventListener('click',()=>triggerAction('APROBADO'));
+document.getElementById('btnReject').addEventListener('click',()=>triggerAction('RECHAZADO'));
+document.getElementById('btnConfirmCancel').addEventListener('click',()=>document.getElementById('confirmBackdrop').classList.remove('open'));
+document.getElementById('confirmBackdrop').addEventListener('click',e=>{if(e.target===document.getElementById('confirmBackdrop'))document.getElementById('confirmBackdrop').classList.remove('open');});
+document.getElementById('btnConfirmOk').addEventListener('click',async()=>{
+  if(!pendingAction) return;
+  const btn=document.getElementById('btnConfirmOk'), orig=btn.innerHTML;
+  btn.innerHTML='Procesando…'; btn.disabled=true;
+  const obs=document.getElementById('confirmObs').value.trim();
+  const {error}=await sb.from('compensaciones').update({estado_proceso:pendingAction.action,observaciones_gerencial:obs||null}).eq('id',pendingAction.recordId);
+  btn.innerHTML=orig; btn.disabled=false;
+  if(error){alert('Error: '+error.message);return;}
+  document.getElementById('confirmBackdrop').classList.remove('open');
+  closeDetailModal(); loadAllCounts(); loadData();
 });
 
-// Botón Editar: Ejemplo sencillo para editar las observaciones
-document.getElementById('btnEditar').addEventListener('click', async () => {
-    if (!currentRecord) return;
-    const nuevaObs = prompt('Editar observaciones:', currentRecord.observaciones || '');
-    
-    if (nuevaObs !== null && nuevaObs !== currentRecord.observaciones) {
-        const { error } = await sb
-            .from('compensaciones')
-            .update({ observaciones: nuevaObs })
-            .eq('id', currentRecord.id);
-            
-        if (error) {
-            alert('Error al actualizar: ' + error.message);
-        } else {
-            alert('Observación actualizada correctamente.');
-            currentRecord.observaciones = nuevaObs;
-            openModal(currentRecord); // Refrescar modal
-            loadData(); // Refrescar fondo
-        }
-    }
+// ── REVERT MODAL ────────────────────────────────────────────
+function openRevertModal(id){
+  revertRecordId=id;
+  const r=allRecords.find(x=>String(x.id)===String(id));
+  document.getElementById('revertDesc').innerHTML=`Devolverá <strong>${esc(r?r.producto:'este SKU')}</strong> a estado <strong>Pendiente</strong> para ser evaluado nuevamente. Ingresa la clave de autorización.`;
+  document.getElementById('revertPwdInput').value='';
+  document.getElementById('revertErr').classList.remove('show');
+  document.getElementById('revertPwdInput').classList.remove('error');
+  document.getElementById('revertBackdrop').classList.add('open');
+}
+document.getElementById('btnRevertCancel').addEventListener('click',()=>document.getElementById('revertBackdrop').classList.remove('open'));
+document.getElementById('revertBackdrop').addEventListener('click',e=>{if(e.target===document.getElementById('revertBackdrop'))document.getElementById('revertBackdrop').classList.remove('open');});
+// Toggle eye
+document.getElementById('revertEyeToggle').addEventListener('click',()=>{
+  const inp=document.getElementById('revertPwdInput');
+  const icon=document.getElementById('revertEyeIcon');
+  if(inp.type==='password'){
+    inp.type='text';
+    icon.innerHTML='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+  } else {
+    inp.type='password';
+    icon.innerHTML='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+  }
+});
+document.getElementById('btnRevertOk').addEventListener('click',async()=>{
+  const pwd=document.getElementById('revertPwdInput').value;
+  if(pwd!==REVERT_PASS){
+    document.getElementById('revertPwdInput').classList.add('error');
+    document.getElementById('revertErr').classList.add('show');
+    return;
+  }
+  const btn=document.getElementById('btnRevertOk'),orig=btn.innerHTML;
+  btn.innerHTML='Revirtiendo…'; btn.disabled=true;
+  const {error}=await sb.from('compensaciones').update({estado_proceso:'PENDIENTE',observaciones_gerencial:null}).eq('id',revertRecordId);
+  btn.innerHTML=orig; btn.disabled=false;
+  if(error){alert('Error: '+error.message);return;}
+  document.getElementById('revertBackdrop').classList.remove('open');
+  loadAllCounts(); loadData();
+});
+document.getElementById('revertPwdInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btnRevertOk').click();});
+
+// ── LIGHTBOX with zoom ───────────────────────────────────────
+let lbPhotos=[], lbIdx=0;
+let lbScale=1, lbMinScale=1, lbMaxScale=5;
+let lbPanX=0, lbPanY=0;
+let lbDragging=false, lbDragStartX=0, lbDragStartY=0, lbPanStartX=0, lbPanStartY=0;
+
+const lbBack  = document.getElementById('lightboxBackdrop');
+const lbImg   = document.getElementById('lightboxImg');
+const lbWrap  = document.getElementById('lbImgWrap');
+const lbStage = document.getElementById('lbStage');
+
+function openLightbox(idx){
+  if(!lbPhotos.length) return;
+  lbIdx=idx; lbScale=1; lbPanX=0; lbPanY=0;
+  lbImg.src=''; lbImg.classList.remove('zoomed');
+  lbImg.onload=()=>{ applyLbTransform(); updateLbUI(); };
+  lbImg.src=lbPhotos[lbIdx];
+  lbBack.classList.add('open');
+  document.body.style.overflow='hidden';
+  updateLbUI();
+}
+function closeLightbox(){
+  lbBack.classList.remove('open');
+  document.body.style.overflow='';
+  lbImg.src='';
+}
+function showLbPhoto(){
+  lbScale=1; lbPanX=0; lbPanY=0;
+  lbImg.classList.remove('zoomed');
+  lbImg.src=lbPhotos[lbIdx];
+  applyLbTransform(); updateLbUI();
+}
+function applyLbTransform(){
+  lbImg.style.transform=`scale(${lbScale}) translate(${lbPanX/lbScale}px,${lbPanY/lbScale}px)`;
+  lbImg.style.transformOrigin='center center';
+  // zoom bar
+  const pct=((lbScale-1)/(lbMaxScale-1))*100;
+  document.getElementById('lbZoomFill').style.width=pct+'%';
+  document.getElementById('lbZoomThumb').style.left=pct+'%';
+  document.getElementById('lbZoomLabel').textContent=Math.round(lbScale*100)+'%';
+  lbStage.classList.toggle('zoom-cursor',lbScale===1);
+}
+function lbZoom(delta, cx, cy){
+  const prev=lbScale;
+  lbScale=Math.min(lbMaxScale,Math.max(1,lbScale+delta));
+  if(lbScale===1){lbPanX=0;lbPanY=0;}
+  applyLbTransform();
+}
+function updateLbUI(){
+  document.getElementById('lbCounter').textContent=`${lbIdx+1} / ${lbPhotos.length}`;
+  document.getElementById('lbPrev').style.display=lbPhotos.length>1?'flex':'none';
+  document.getElementById('lbNext').style.display=lbPhotos.length>1?'flex':'none';
+}
+
+// Buttons
+document.getElementById('lbClose').addEventListener('click',closeLightbox);
+document.getElementById('lbBack',lbBack);
+lbBack.addEventListener('click',e=>{if(e.target===lbBack)closeLightbox();});
+document.getElementById('lbPrev').addEventListener('click',e=>{e.stopPropagation();lbIdx=(lbIdx-1+lbPhotos.length)%lbPhotos.length;showLbPhoto();});
+document.getElementById('lbNext').addEventListener('click',e=>{e.stopPropagation();lbIdx=(lbIdx+1)%lbPhotos.length;showLbPhoto();});
+document.getElementById('lbZoomIn').addEventListener('click',()=>lbZoom(0.5));
+document.getElementById('lbZoomOut').addEventListener('click',()=>lbZoom(-0.5));
+document.getElementById('lbReset').addEventListener('click',()=>{lbScale=1;lbPanX=0;lbPanY=0;lbImg.classList.remove('zoomed');applyLbTransform();});
+document.getElementById('lbFullscreen').addEventListener('click',()=>{
+  if(!document.fullscreenElement) lbBack.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen();
 });
 
-// Iniciar
+// Double-click zoom
+lbStage.addEventListener('dblclick',e=>{
+  if(lbScale===1){lbZoom(2);}
+  else{lbScale=1;lbPanX=0;lbPanY=0;applyLbTransform();}
+});
+
+// Mouse wheel zoom
+lbStage.addEventListener('wheel',e=>{
+  e.preventDefault();
+  lbZoom(e.deltaY<0?0.4:-0.4);
+},{passive:false});
+
+// Drag to pan
+lbStage.addEventListener('mousedown',e=>{
+  if(lbScale>1){
+    lbDragging=true; lbDragStartX=e.clientX; lbDragStartY=e.clientY;
+    lbPanStartX=lbPanX; lbPanStartY=lbPanY;
+    lbStage.classList.add('grabbed');
+  }
+});
+document.addEventListener('mousemove',e=>{
+  if(!lbDragging) return;
+  lbPanX=lbPanStartX+(e.clientX-lbDragStartX);
+  lbPanY=lbPanStartY+(e.clientY-lbDragStartY);
+  applyLbTransform();
+});
+document.addEventListener('mouseup',()=>{lbDragging=false;lbStage.classList.remove('grabbed');});
+
+// Touch zoom (pinch)
+let lbTouches=[], lbInitDist=0, lbInitScale=1;
+lbStage.addEventListener('touchstart',e=>{
+  lbTouches=Array.from(e.touches);
+  if(lbTouches.length===2){
+    lbInitDist=Math.hypot(lbTouches[1].clientX-lbTouches[0].clientX,lbTouches[1].clientY-lbTouches[0].clientY);
+    lbInitScale=lbScale;
+  }
+},{passive:true});
+lbStage.addEventListener('touchmove',e=>{
+  if(e.touches.length===2){
+    e.preventDefault();
+    const dist=Math.hypot(e.touches[1].clientX-e.touches[0].clientX,e.touches[1].clientY-e.touches[0].clientY);
+    lbScale=Math.min(lbMaxScale,Math.max(1,lbInitScale*(dist/lbInitDist)));
+    if(lbScale===1){lbPanX=0;lbPanY=0;}
+    applyLbTransform();
+  }
+},{passive:false});
+
+// Zoom track click
+document.getElementById('lbZoomTrack').addEventListener('click',e=>{
+  const rect=e.currentTarget.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  lbScale=1+pct*(lbMaxScale-1);
+  if(lbScale===1){lbPanX=0;lbPanY=0;}
+  applyLbTransform();
+});
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(!lbBack.classList.contains('open')) return;
+  if(e.key==='Escape') closeLightbox();
+  if(e.key==='ArrowLeft'){lbIdx=(lbIdx-1+lbPhotos.length)%lbPhotos.length;showLbPhoto();}
+  if(e.key==='ArrowRight'){lbIdx=(lbIdx+1)%lbPhotos.length;showLbPhoto();}
+  if(e.key==='+'||e.key==='=') lbZoom(0.5);
+  if(e.key==='-') lbZoom(-0.5);
+  if(e.key==='0'){lbScale=1;lbPanX=0;lbPanY=0;applyLbTransform();}
+});
+
+// ── PDF STYLES ──────────────────────────────────────────────
+function getPdfStyles(){
+  return `
+  * { box-sizing: border-box; }
+  .pdf-header-bar{border-bottom:3px solid #1a2b56;padding-bottom:1rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:flex-start}
+  .pdf-title{font-size:1.25rem;font-weight:800;color:#1a2b56}
+  .pdf-subtitle{font-size:.72rem;color:#6b7280;margin-top:.2rem}
+  .pdf-summary-bar{background:#f4f6fb;border:1px solid #e5e8f0;border-radius:8px;padding:.65rem 1rem;margin-bottom:1.25rem;display:flex;gap:2rem;flex-wrap:wrap}
+  .pdf-sum-item .sl{font-size:.65rem;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .pdf-sum-item .sv{font-size:.9rem;font-weight:800;color:#111}
+  .pdf-sum-item .sv.green{color:#059669}
+  .pdf-sum-item .sv.red{color:#dc2626}
+  .pdf-sku-block{border:1px solid #e5e8f0;border-radius:8px;margin-bottom:1.1rem;overflow:hidden;page-break-inside:avoid}
+  .pdf-sku-head{padding:.65rem .9rem;display:flex;justify-content:space-between;align-items:flex-start}
+  .pdf-sku-head.approved{background:#ecfdf5;border-left:5px solid #059669}
+  .pdf-sku-head.rejected{background:#fef2f2;border-left:5px solid #dc2626}
+  .pdf-sku-head.pending{background:#fffbeb;border-left:5px solid #d97706}
+  .pdf-sku-title{font-weight:800;color:#111;font-size:.85rem}
+  .pdf-sku-meta{font-size:.68rem;color:#6b7280;margin-top:.2rem}
+  .estado-badge{display:inline-block;font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:4px;margin-left:.4rem}
+  .estado-badge.aprobado{background:#d1fae5;color:#059669}
+  .estado-badge.rechazado{background:#fee2e2;color:#dc2626}
+  .estado-badge.pendiente{background:#fef9c3;color:#a16207}
+  .pdf-sku-amt{font-weight:900;font-size:1rem;white-space:nowrap;margin-left:.5rem}
+  .pdf-sku-amt.aprobado{color:#059669}
+  .pdf-sku-amt.rechazado{color:#dc2626}
+  .pdf-sku-body{padding:.7rem .9rem;background:#fff}
+  .pdf-section-label{font-size:.65rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0.5rem 0 .3rem}
+  .pdf-kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:.1rem .75rem;margin-bottom:.5rem}
+  .pdf-kv{display:flex;justify-content:space-between;padding:.15rem 0;font-size:.73rem;border-bottom:1px dashed #f0f0f0}
+  .pdf-kv:last-child{border-bottom:none}
+  .pdf-kv .k{color:#6b7280}
+  .pdf-kv .v{font-weight:600}
+  .pdf-motivo-box{margin:.5rem 0;padding:.5rem .75rem;border-radius:6px;font-size:.75rem}
+  .pdf-motivo-box.vendedor{background:#fffbeb;border-left:3px solid #d97706}
+  .pdf-motivo-box.gerencia{background:#eff6ff;border-left:3px solid #2563eb}
+  .pdf-motivo-label{font-weight:700;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem}
+  .pdf-motivo-box.vendedor .pdf-motivo-label{color:#d97706}
+  .pdf-motivo-box.gerencia .pdf-motivo-label{color:#2563eb}
+  .pdf-total-row{padding:.65rem .9rem;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:.9rem}
+  .pdf-total-row.aprobado{background:#ecfdf5;border-top:2px solid #a7f3d0;color:#059669}
+  .pdf-total-row.rechazado{background:#fef2f2;border-top:2px solid #fecaca;color:#dc2626}
+  .pdf-total-row.pendiente{background:#fffbeb;border-top:2px solid #fde68a;color:#d97706}
+  .pdf-total-row .pacas{font-size:.75rem;color:inherit;font-weight:600;opacity:.75}
+  .pdf-grand-total{background:#1a2b56;color:#fff;border-radius:8px;padding:.85rem 1.1rem;margin-top:1.25rem;display:flex;justify-content:space-between;align-items:center}
+  .pdf-grand-total .gtl{font-size:.75rem;font-weight:600;opacity:.75}
+  .pdf-grand-total .gtv{font-size:1.2rem;font-weight:900}
+  .pdf-grand-total .gtp{font-size:.8rem;opacity:.7;margin-top:.1rem}
+  .pdf-footer{margin-top:1.5rem;border-top:1px solid #e5e8f0;padding-top:.65rem;font-size:.68rem;color:#9ca3af;display:flex;justify-content:space-between}
+  `;
+}
+
+// ── BUILD PDF CONTENT ────────────────────────────────────────
+function buildPdfContent(records){
+  const now=new Date().toLocaleDateString('es-VE',{day:'2-digit',month:'long',year:'numeric'});
+  const clientName=records[0].cliente_nombre;
+  const totalApro   = records.filter(r=>r.estado_proceso==='APROBADO').reduce((s,r)=>s+(r.total_compensar||0),0);
+  const totalRech   = records.filter(r=>r.estado_proceso==='RECHAZADO').reduce((s,r)=>s+(r.total_compensar||0),0);
+  const pacasApro   = records.filter(r=>r.estado_proceso==='APROBADO').reduce((s,r)=>s+(r.pacas_a_entregar||0),0);
+  const pacasRech   = records.filter(r=>r.estado_proceso==='RECHAZADO').reduce((s,r)=>s+(r.pacas_a_entregar||0),0);
+  const cntA=records.filter(r=>r.estado_proceso==='APROBADO').length;
+  const cntR=records.filter(r=>r.estado_proceso==='RECHAZADO').length;
+  const cntP=records.filter(r=>r.estado_proceso==='PENDIENTE').length;
+
+  // Sort: approved first, then rejected, then pending
+  const sorted=[
+    ...records.filter(r=>r.estado_proceso==='APROBADO'),
+    ...records.filter(r=>r.estado_proceso==='RECHAZADO'),
+    ...records.filter(r=>r.estado_proceso==='PENDIENTE')
+  ];
+
+  const pdfEl=document.getElementById('pdfContent');
+  pdfEl.innerHTML=`
+  <div class="pdf-header-bar">
+    <div>
+      <div class="pdf-title">MarquesCheck — Reporte de Compensaciones</div>
+      <div class="pdf-subtitle">Generado el ${now} · Cliente: <strong>${esc(clientName)}</strong></div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:.78rem;color:#6b7280">${records.length} compensación${records.length!==1?'es':''}</div>
+      ${cntA>0?`<div style="font-size:.78rem;color:#059669;font-weight:700">✓ ${cntA} Aprobada${cntA>1?'s':''}</div>`:''}
+      ${cntR>0?`<div style="font-size:.78rem;color:#dc2626;font-weight:700">✗ ${cntR} Rechazada${cntR>1?'s':''}</div>`:''}
+    </div>
+  </div>
+
+  <div class="pdf-summary-bar">
+    ${cntA>0?`<div class="pdf-sum-item"><div class="sl">Total Aprobado</div><div class="sv green">$${totalApro.toFixed(2)}</div><div style="font-size:.68rem;color:#059669">${pacasApro} pacas equiv.</div></div>`:''}
+    ${cntR>0?`<div class="pdf-sum-item"><div class="sl">Total Rechazado</div><div class="sv red">$${totalRech.toFixed(2)}</div><div style="font-size:.68rem;color:#dc2626">${pacasRech} pacas equiv.</div></div>`:''}
+    ${cntP>0?`<div class="pdf-sum-item"><div class="sl">Pendientes</div><div class="sv">${cntP}</div></div>`:''}
+    <div class="pdf-sum-item"><div class="sl">SKUs Totales</div><div class="sv">${records.length}</div></div>
+  </div>
+
+  ${sorted.map((r,i)=>{
+    const isApro=r.estado_proceso==='APROBADO';
+    const isRech=r.estado_proceso==='RECHAZADO';
+    const cls=isApro?'aprobado':isRech?'rechazado':'pendiente';
+    const headCls=isApro?'approved':isRech?'rejected':'pending';
+    const estadoLabel=isApro?'APROBADO':isRech?'RECHAZADO':'PENDIENTE';
+    return `
+    <div class="pdf-sku-block">
+      <div class="pdf-sku-head ${headCls}">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem">
+            <span class="pdf-sku-title">${i+1}. ${esc(r.producto)}</span>
+            <span class="estado-badge ${cls}">${estadoLabel}</span>
+          </div>
+          <div class="pdf-sku-meta">Fac. <strong>${esc(r.numero_factura)}</strong> · Cierre: ${esc(r.tipo_cierre)} · Vendedor: ${esc(r.promotor_nombre)}</div>
+        </div>
+        <span class="pdf-sku-amt ${cls}">$${(r.total_compensar||0).toFixed(2)}</span>
+      </div>
+      <div class="pdf-sku-body">
+        <div class="pdf-section-label">Detalle de la compensación</div>
+        <div class="pdf-kv-grid">
+          <div class="pdf-kv"><span class="k">Pacas factura</span><span class="v">${r.pacas_factura}</span></div>
+          <div class="pdf-kv"><span class="k">Pacas a reconocer</span><span class="v">${r.pacas_a_reconocer}</span></div>
+          <div class="pdf-kv"><span class="k">Precio anterior (neto)</span><span class="v">$${r.precio_anterior}</span></div>
+          <div class="pdf-kv"><span class="k">Precio actual (neto)</span><span class="v">$${r.precio_final}</span></div>
+          <div class="pdf-kv"><span class="k">Diferencia / paca</span><span class="v">$${r.diferencia_paca}</span></div>
+          <div class="pdf-kv"><span class="k">Equivalente en producto</span><span class="v">+${r.pacas_a_entregar} pacas</span></div>
+        </div>
+        ${r.observaciones?`<div class="pdf-motivo-box vendedor"><div class="pdf-motivo-label">Observación del vendedor</div><div>${esc(r.observaciones)}</div></div>`:''}
+        ${r.observaciones_gerencial?`<div class="pdf-motivo-box gerencia"><div class="pdf-motivo-label">Observación de gerencia · Motivo de ${isApro?'aprobación':'rechazo'}</div><div>${esc(r.observaciones_gerencial)}</div></div>`:(!isRech&&!r.observaciones_gerencial?'':'<div class="pdf-motivo-box gerencia" style="opacity:.5"><div class="pdf-motivo-label">Observación de gerencia</div><div style="font-style:italic;color:#6b7280">Sin observación registrada</div></div>')}
+      </div>
+      <div class="pdf-total-row ${cls}">
+        <span>Nota crédito — ${esc(r.producto)}</span>
+        <div style="text-align:right">
+          <div>$${(r.total_compensar||0).toFixed(2)}</div>
+          <div class="pacas">+${r.pacas_a_entregar} pacas equiv.</div>
+        </div>
+      </div>
+    </div>`; }).join('')}
+
+  ${(cntA>0||cntR>0)?`
+  <div class="pdf-grand-total">
+    <div>
+      <div class="gtl">RESUMEN FINAL · ${esc(clientName)}</div>
+      ${cntA>0?`<div class="gtp">✓ Aprobado: $${totalApro.toFixed(2)} · ${pacasApro} pacas equiv.</div>`:''}
+      ${cntR>0?`<div class="gtp" style="color:#fca5a5">✗ Rechazado: $${totalRech.toFixed(2)} · ${pacasRech} pacas equiv.</div>`:''}
+    </div>
+    <div style="text-align:right">
+      <div class="gtl">TOTAL A COMPENSAR</div>
+      <div class="gtv">$${totalApro.toFixed(2)}</div>
+      <div class="gtp">${pacasApro} pacas equivalentes</div>
+    </div>
+  </div>`:''}
+
+  <div class="pdf-footer">
+    <span>MarquesCheck · ${now}</span>
+    <span>Documento generado automáticamente · Confidencial</span>
+  </div>`;
+}
+
+// ── PDF GROUP EXPORT ─────────────────────────────────────────
+function exportGroupPDF(groupId){
+  const hdr=document.getElementById('gh-'+groupId); if(!hdr) return;
+  const clientName=hdr.querySelector('.group-name').textContent;
+  buildPdfContent(allRecords.filter(r=>r.cliente_nombre===clientName));
+  html2pdf().set({
+    margin:[10,10,10,10],
+    filename:`compensacion-${clientName.replace(/\s+/g,'-')}-${Date.now()}.pdf`,
+    image:{type:'jpeg',quality:.96},
+    html2canvas:{scale:2,useCORS:true},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+  }).from(document.getElementById('pdfContent')).save();
+}
+function printGroupPDF(groupId){
+  const hdr=document.getElementById('gh-'+groupId); if(!hdr) return;
+  const clientName=hdr.querySelector('.group-name').textContent;
+  buildPdfContent(allRecords.filter(r=>r.cliente_nombre===clientName));
+  const w=window.open('','_blank');
+  w.document.write('<html><head><title>Imprimir — '+clientName+'</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"><style>body{font-family:Inter,sans-serif;font-size:12px;padding:2rem;color:#111}'+getPdfStyles()+'@media print{body{padding:0}}</style></head><body>');
+  w.document.write(document.getElementById('pdfContent').innerHTML);
+  w.document.write('</body></html>'); w.document.close(); w.focus();
+  setTimeout(()=>w.print(),700);
+}
+
+// ── TABS ────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    currentTab=e.currentTarget.dataset.tab;
+    loadData();
+  });
+});
+
+// ── UTILS ───────────────────────────────────────────────────
+function esc(str){if(!str)return'';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function sanitizeId(str){return str.replace(/[^a-zA-Z0-9]/g,'_');}
+
 checkUser();
 </script>
 </body>
