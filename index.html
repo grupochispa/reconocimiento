@@ -6,7 +6,7 @@
 <title>MarquesCheck — Panel de Compensaciones</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -280,8 +280,32 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 .btn-delete-ok{padding:.6rem 1.1rem;border-radius:var(--radius);font-size:.82rem;font-weight:700;background:var(--red);color:#fff;border:1.5px solid var(--red);transition:all .2s;display:flex;align-items:center;gap:.35rem}
 .btn-delete-ok:hover{background:#b91c1c}
 
-/* ── PDF hidden ── */
-#pdfContent{position:absolute;left:-9999px;top:0;width:794px;font-family:'Inter',sans-serif;font-size:12px;background:#fff;padding:2.5rem}
+/* ── TAB PANELS ── */
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* ── ANALYTICS ── */
+.analytics-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.analytics-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem}
+.analytics-row{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+@media(max-width:700px){.analytics-row{grid-template-columns:1fr}}
+.analytics-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;box-shadow:var(--shadow)}
+.analytics-card h3{font-size:.75rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem;display:flex;align-items:center;gap:.4rem}
+.analytics-card h3 svg{width:14px;height:14px;stroke:var(--text2);flex-shrink:0}
+.rank-item{display:flex;align-items:center;gap:.75rem;padding:.45rem 0;border-bottom:1px solid var(--border)}
+.rank-item:last-child{border-bottom:none}
+.rank-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;flex-shrink:0}
+.rank-num.gold{background:#fef9c3;color:#a16207}
+.rank-num.silver{background:#f1f5f9;color:#475569}
+.rank-num.bronze{background:#fdf2e4;color:#92400e}
+.rank-num.other{background:var(--surface2);color:var(--text3)}
+.rank-info{flex:1;min-width:0}
+.rank-name{font-weight:600;font-size:.82rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-bar-wrap{height:4px;background:var(--border);border-radius:2px;margin-top:.3rem}
+.rank-bar{height:100%;border-radius:2px;transition:width .6s ease}
+.rank-val{font-weight:800;font-size:.82rem;white-space:nowrap;text-align:right}
+.rank-sub{font-size:.67rem;color:var(--text3);text-align:right}
+
+
 
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -329,7 +353,14 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         Resultados <span class="tab-count" id="cntResult">0</span>
       </button>
+      <button class="tab-btn" data-tab="ANALISIS">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Análisis
+      </button>
     </div>
+
+    <!-- LIST PANEL (Pendientes / Resultados) -->
+    <div class="tab-panel active" id="panel-list">
     <div class="stats-row">
       <div class="stat-card"><div class="label">Clientes</div><div class="value" id="statClients">0</div><div class="sub">con reconocimientos</div></div>
       <div class="stat-card"><div class="label">SKUs</div><div class="value" id="statSkus">0</div><div class="sub">compensaciones</div></div>
@@ -346,6 +377,16 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
       <button class="btn-clear-filters" id="btnClearFilters">Limpiar</button>
     </div>
     <div class="groups-list" id="groupsList"></div>
+    </div>
+
+    <!-- ANALYTICS PANEL -->
+    <div class="tab-panel" id="panel-analisis">
+      <div class="analytics-wrap" id="analyticsWrap">
+        <div class="loading-row">Cargando análisis…</div>
+      </div>
+    </div>
+
+
   </main>
 </div>
 
@@ -550,6 +591,7 @@ async function loadAllCounts() {
 
 // ── LOAD DATA ───────────────────────────────────────────────
 async function loadData() {
+  if (currentTab === 'ANALISIS') { renderAnalytics(); return; }
   document.getElementById('groupsList').innerHTML = '<div class="loading-row">Cargando registros…</div>';
   let query = sb.from('compensaciones').select('*').order('created_at',{ascending:false});
   if (currentTab === 'PENDIENTE') query = query.eq('estado_proceso','PENDIENTE');
@@ -1197,18 +1239,12 @@ function buildPdfContent(records){
   </div>`;
 }
 
-// ── PDF GROUP EXPORT ─────────────────────────────────────────
+// ── PDF EXPORT (jsPDF — texto directo, sin renderizado HTML) ─
 function exportGroupPDF(groupId){
   const hdr=document.getElementById('gh-'+groupId); if(!hdr) return;
   const clientName=hdr.querySelector('.group-name').textContent;
-  buildPdfContent(allRecords.filter(r=>r.cliente_nombre===clientName));
-  html2pdf().set({
-    margin:[10,10,10,10],
-    filename:`compensacion-${clientName.replace(/\s+/g,'-')}-${Date.now()}.pdf`,
-    image:{type:'jpeg',quality:.96},
-    html2canvas:{scale:2,useCORS:true},
-    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
-  }).from(document.getElementById('pdfContent')).save();
+  const records=allRecords.filter(r=>r.cliente_nombre===clientName);
+  generateJsPDF(records, clientName);
 }
 function printGroupPDF(groupId){
   const hdr=document.getElementById('gh-'+groupId); if(!hdr) return;
@@ -1227,6 +1263,9 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
     e.currentTarget.classList.add('active');
     currentTab=e.currentTarget.dataset.tab;
+    const isListTab=currentTab==='PENDIENTE'||currentTab==='RESULTADO';
+    document.getElementById('panel-list').classList.toggle('active',isListTab);
+    document.getElementById('panel-analisis').classList.toggle('active',currentTab==='ANALISIS');
     loadData();
   });
 });
@@ -1234,6 +1273,208 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 // ── UTILS ───────────────────────────────────────────────────
 function esc(str){if(!str)return'';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function sanitizeId(str){return str.replace(/[^a-zA-Z0-9]/g,'_');}
+
+// ── jsPDF GENERATOR ─────────────────────────────────────────
+function generateJsPDF(records, clientName){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+  const W=210,M=14,CW=W-M*2;
+  const now=new Date().toLocaleDateString('es-VE',{day:'2-digit',month:'long',year:'numeric'});
+  let y=M;
+
+  const NAVY=[26,43,86],GREEN=[5,150,105],RED=[220,38,38],AMBER=[217,119,6];
+  const GRAY=[107,114,128],LGRAY=[229,232,240],WHITE=[255,255,255];
+
+  const sf=(size,style='normal',color=[17,24,39])=>{doc.setFontSize(size);doc.setFont('helvetica',style);doc.setTextColor(...color);};
+  const ln=(x1,y1,x2,y2,c=LGRAY,w=.3)=>{doc.setDrawColor(...c);doc.setLineWidth(w);doc.line(x1,y1,x2,y2);};
+  const rc=(x,ry,rw,rh,fill,stroke)=>{if(fill){doc.setFillColor(...fill);}if(stroke){doc.setDrawColor(...stroke);}doc.rect(x,ry,rw,rh,fill&&stroke?'FD':fill?'F':stroke?'S':'N');};
+  const addPage=()=>{doc.addPage();y=M;pageHeader();};
+  const needsPage=(n=30)=>{if(y+n>285)addPage();};
+
+  function pageHeader(){
+    rc(0,0,210,9,NAVY);
+    sf(7,'bold',WHITE);doc.text('MarquesCheck — Compensaciones',M,6.5);
+    sf(6.5,'normal',[180,200,240]);doc.text(`${clientName} · ${now}`,W-M,6.5,{align:'right'});
+    y=15;
+  }
+
+  // Cover
+  rc(0,0,210,38,NAVY);
+  sf(20,'bold',WHITE);doc.text('MarquesCheck',M,16);
+  sf(9,'normal',[180,200,230]);doc.text('Reporte de Compensaciones',M,23);
+  sf(7.5,'normal',[130,155,200]);doc.text(`Generado el ${now}`,M,29);
+  y=44;
+
+  // Client block
+  rc(M,y,CW,16,[240,244,251]);rc(M,y,CW,16,null,LGRAY);
+  const totA=records.filter(r=>r.estado_proceso==='APROBADO').reduce((s,r)=>s+(r.total_compensar||0),0);
+  const totR=records.filter(r=>r.estado_proceso==='RECHAZADO').reduce((s,r)=>s+(r.total_compensar||0),0);
+  const cntA=records.filter(r=>r.estado_proceso==='APROBADO').length;
+  const cntR=records.filter(r=>r.estado_proceso==='RECHAZADO').length;
+  const cntP=records.filter(r=>r.estado_proceso==='PENDIENTE').length;
+  sf(6.5,'bold',GRAY);doc.text('CLIENTE',M+4,y+5);
+  sf(11,'bold',NAVY);doc.text(clientName,M+4,y+12);
+  sf(6.5,'bold',GRAY);doc.text('TOTAL APROBADO',W-M-55,y+5);
+  sf(12,'bold',GREEN);doc.text(`$${totA.toFixed(2)}`,W-M-2,y+12,{align:'right'});
+  y+=20;
+
+  // Summary bar
+  const summCols=[[`${cntA} Aprobados`,`$${totA.toFixed(2)}`,GREEN],[`${cntR} Rechazados`,`$${totR.toFixed(2)}`,RED],[`${records.length} SKUs`,`${cntP} pendientes`,NAVY]];
+  const cw2=CW/3;
+  summCols.forEach(([lbl,sub,color],i)=>{
+    rc(M+i*cw2,y,cw2-.4,12,[248,249,252]);rc(M+i*cw2,y,cw2-.4,12,null,LGRAY);
+    sf(8,'bold',color);doc.text(lbl,M+i*cw2+3,y+5.5);
+    sf(6.5,'normal',GRAY);doc.text(sub,M+i*cw2+3,y+10);
+  });
+  y+=16;
+  ln(M,y,W-M,y,NAVY,.4);y+=5;
+
+  // SKU blocks
+  const sorted=[...records.filter(r=>r.estado_proceso==='APROBADO'),...records.filter(r=>r.estado_proceso==='RECHAZADO'),...records.filter(r=>r.estado_proceso==='PENDIENTE')];
+  sorted.forEach((r,idx)=>{
+    needsPage(55);
+    const isA=r.estado_proceso==='APROBADO',isR=r.estado_proceso==='RECHAZADO';
+    const stC=isA?GREEN:isR?RED:AMBER;
+    const stL=isA?'APROBADO':isR?'RECHAZADO':'PENDIENTE';
+    const bgH=isA?[236,253,245]:isR?[254,242,242]:[255,251,235];
+
+    // Header stripe
+    rc(M,y,4,9,stC);rc(M+4,y,CW-4,9,bgH);
+    sf(9,'bold',NAVY);doc.text(`${idx+1}. ${r.producto}`,M+8,y+6.5);
+    sf(8,'bold',stC);doc.text(`$${(r.total_compensar||0).toFixed(2)}`,W-M-2,y+6.5,{align:'right'});
+    y+=9;
+
+    // Badge + meta
+    rc(M,y,CW,5.5,[250,251,253]);
+    sf(6,'normal',GRAY);doc.text(`${stL}  ·  Fac. ${r.numero_factura||'-'}  ·  Cierre: ${r.tipo_cierre||'-'}  ·  Vendedor: ${r.promotor_nombre||'-'}`,M+3,y+4);
+    y+=5.5;
+
+    // Data rows
+    const rows=[
+      ['Pacas factura',String(r.pacas_factura||'-'),'Pacas a reconocer',String(r.pacas_a_reconocer||'-')],
+      ['Precio anterior (neto)','$'+r.precio_anterior,'Precio actual (neto)','$'+r.precio_final],
+      ['Diferencia / paca','$'+r.diferencia_paca,'Equivalente en producto',`+${r.pacas_a_entregar} pacas`],
+    ];
+    const hw=CW/2;
+    rows.forEach(([k1,v1,k2,v2])=>{
+      rc(M,y,hw-.3,6,[252,253,254]);rc(M+hw,y,hw,6,[252,253,254]);
+      ln(M,y+6,M+CW,y+6,LGRAY,.15);
+      sf(5.5,'normal',GRAY);doc.text(k1,M+2.5,y+2.5);doc.text(k2,M+hw+2.5,y+2.5);
+      sf(6.5,'bold',[17,24,39]);doc.text(v1,M+2.5,y+5.5);doc.text(v2,M+hw+2.5,y+5.5);
+      y+=6;
+    });
+
+    // Observations
+    if(r.observaciones){
+      needsPage(9);
+      rc(M,y,CW,8,[255,251,235]);rc(M,y,2.5,8,AMBER);
+      sf(5.5,'bold',AMBER);doc.text('OBS. VENDEDOR:',M+4,y+3.2);
+      sf(6,'normal',[120,80,0]);
+      const t=doc.splitTextToSize(r.observaciones,CW-45);
+      doc.text(t[0]||'',M+34,y+3.2);
+      if(t.length>1){sf(6,'normal',[120,80,0]);doc.text(t[1],M+4,y+6.5);}
+      y+=t.length>1?10:8;
+    }
+    if(r.observaciones_gerencial){
+      needsPage(9);
+      rc(M,y,CW,8,[239,246,255]);rc(M,y,2.5,8,[37,99,235]);
+      sf(5.5,'bold',[37,99,235]);doc.text(`GERENCIA (${stL}):`,M+4,y+3.2);
+      sf(6,'normal',[30,58,138]);
+      const t=doc.splitTextToSize(r.observaciones_gerencial,CW-42);
+      doc.text(t[0]||'',M+38,y+3.2);
+      y+=8;
+    }
+
+    // Total bar
+    rc(M,y,CW,8,stC);
+    sf(7.5,'bold',WHITE);doc.text('NOTA DE CRÉDITO',M+3,y+5.5);
+    doc.text(`$${(r.total_compensar||0).toFixed(2)}  ·  +${r.pacas_a_entregar} pacas equiv.`,W-M-2,y+5.5,{align:'right'});
+    y+=8;y+=4;
+  });
+
+  // Grand total
+  needsPage(20);y+=2;
+  rc(M,y,CW,16,NAVY);
+  sf(6.5,'bold',[160,185,230]);doc.text('RESUMEN FINAL',M+3,y+5);
+  sf(11,'bold',WHITE);doc.text(`$${totA.toFixed(2)}`,W-M-2,y+10,{align:'right'});
+  sf(7.5,'normal',WHITE);doc.text('Total a compensar (aprobados)',M+3,y+10);
+  sf(6,'normal',[140,165,215]);
+  if(totR>0)doc.text(`Rechazado: $${totR.toFixed(2)}`,M+3,y+14.5);
+  doc.text(`${records.length} SKUs procesados`,W-M-2,y+14.5,{align:'right'});
+  y+=20;
+
+  // Footer
+  ln(M,y,W-M,y,LGRAY);y+=4;
+  sf(6,'normal',GRAY);doc.text(`MarquesCheck · ${now}`,M,y);
+  doc.text('Confidencial — Documento generado automáticamente',W-M,y,{align:'right'});
+
+  doc.save(`compensacion-${clientName.replace(/\s+/g,'-')}-${Date.now()}.pdf`);
+}
+
+// ── ANALYTICS ───────────────────────────────────────────────
+async function renderAnalytics(){
+  const wrap=document.getElementById('analyticsWrap');
+  wrap.innerHTML='<div class="loading-row">Cargando análisis…</div>';
+  const {data,error}=await sb.from('compensaciones').select('producto,estado_proceso,total_compensar,pacas_a_reconocer,cliente_nombre,promotor_nombre');
+  if(error){wrap.innerHTML='<div class="loading-row">Error al cargar.</div>';return;}
+
+  const byProd={},byClient={},byProm={};
+  let cntA=0,cntR=0,cntP=0,totA=0,totR=0,totP=0;
+  data.forEach(r=>{
+    const e=r.estado_proceso,m=r.total_compensar||0;
+    if(e==='APROBADO'){cntA++;totA+=m;}else if(e==='RECHAZADO'){cntR++;totR+=m;}else{cntP++;totP+=m;}
+    if(!byProd[r.producto])byProd[r.producto]={name:r.producto,total:0,apro:0,rech:0,monto:0};
+    byProd[r.producto].total++;byProd[r.producto].monto+=m;
+    if(e==='APROBADO')byProd[r.producto].apro++;else if(e==='RECHAZADO')byProd[r.producto].rech++;
+    if(!byClient[r.cliente_nombre])byClient[r.cliente_nombre]={name:r.cliente_nombre,total:0,monto:0};
+    byClient[r.cliente_nombre].total++;byClient[r.cliente_nombre].monto+=m;
+    if(!byProm[r.promotor_nombre])byProm[r.promotor_nombre]={name:r.promotor_nombre,total:0,monto:0};
+    byProm[r.promotor_nombre].total++;byProm[r.promotor_nombre].monto+=m;
+  });
+
+  const prodList=Object.values(byProd).sort((a,b)=>b.total-a.total).slice(0,8);
+  const clientList=Object.values(byClient).sort((a,b)=>b.monto-a.monto).slice(0,8);
+  const promList=Object.values(byProm).sort((a,b)=>b.total-a.total).slice(0,8);
+  const maxP=prodList[0]?.total||1,maxC=clientList[0]?.monto||1,maxPr=promList[0]?.total||1;
+
+  const medal=i=>i===0?'gold':i===1?'silver':i===2?'bronze':'other';
+  const rankItem=(i,name,val,valHtml,sub,barPct,barColor)=>`
+    <div class="rank-item">
+      <div class="rank-num ${medal(i)}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name" title="${esc(name)}">${esc(name)}</div>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${barPct.toFixed(1)}%;background:${barColor}"></div></div>
+      </div>
+      <div style="text-align:right">
+        <div class="rank-val" style="color:${barColor}">${valHtml}</div>
+        <div class="rank-sub">${sub}</div>
+      </div>
+    </div>`;
+
+  wrap.innerHTML=`
+  <div class="analytics-summary">
+    <div class="stat-card green"><div class="label">Aprobados</div><div class="value">${cntA}</div><div class="sub">$${totA.toFixed(0)}</div></div>
+    <div class="stat-card" style="border-color:var(--red-border)"><div class="label" style="color:var(--red)">Rechazados</div><div class="value" style="color:var(--red)">${cntR}</div><div class="sub">$${totR.toFixed(0)}</div></div>
+    <div class="stat-card amber"><div class="label">Pendientes</div><div class="value">${cntP}</div><div class="sub">$${totP.toFixed(0)}</div></div>
+    <div class="stat-card"><div class="label">Total registros</div><div class="value">${data.length}</div><div class="sub">$${(totA+totR+totP).toFixed(0)}</div></div>
+  </div>
+  <div class="analytics-row">
+    <div class="analytics-card">
+      <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>Productos más compensados</h3>
+      ${prodList.map((p,i)=>rankItem(i,p.name,p.total,`${p.total}`,`✓${p.apro} ✗${p.rech}`,p.total/maxP*100,'#1a2b56')).join('')}
+    </div>
+    <div class="analytics-card">
+      <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Clientes con mayor monto</h3>
+      ${clientList.map((c,i)=>rankItem(i,c.name,c.monto,`$${c.monto.toFixed(0)}`,`${c.total} SKUs`,c.monto/maxC*100,'#059669')).join('')}
+    </div>
+  </div>
+  <div class="analytics-card">
+    <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Vendedores — volumen de compensaciones</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0">
+      ${promList.map((p,i)=>rankItem(i,p.name,p.total,`${p.total}`,`$${p.monto.toFixed(0)}`,p.total/maxPr*100,'#7c3aed')).join('')}
+    </div>
+  </div>`;
+}
 
 checkUser();
 </script>
