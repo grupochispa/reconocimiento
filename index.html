@@ -165,6 +165,8 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 .btn-approve:disabled,.btn-reject:disabled{opacity:.5;cursor:not-allowed}
 .btn-print-modal{background:var(--purple-bg);color:var(--purple);border:1.5px solid var(--purple-border)}
 .btn-print-modal:hover{background:var(--purple);color:#fff}
+.btn-edit-modal{background:var(--blue-bg);color:var(--blue);border:1.5px solid var(--blue-border)}
+.btn-edit-modal:hover{background:var(--blue);color:#fff}
 
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
 @media(max-width:600px){.detail-grid{grid-template-columns:1fr}}
@@ -174,7 +176,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 .info-item .l{font-size:.75rem;color:var(--text3)}
 .info-item .v{font-weight:600;font-size:.85rem;color:var(--text)}
 .divider{border:none;border-top:1px solid var(--border);margin:.6rem 0}
-.kv-row{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;padding:.2rem 0}
+.kv-row{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;padding:.2rem 0; min-height: 28px;}
 .kv-row .k{color:var(--text2)}
 .kv-row .v{font-weight:700;text-align:right}
 .kv-total{font-weight:800;font-size:.9rem}
@@ -305,8 +307,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 .rank-val{font-weight:800;font-size:.82rem;white-space:nowrap;text-align:right}
 .rank-sub{font-size:.67rem;color:var(--text3);text-align:right}
 
-
-
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
@@ -314,7 +314,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginWrap">
   <div class="login-card">
     <div class="login-logo">
@@ -329,7 +328,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- APP -->
 <div id="appWrap">
   <header>
     <div class="header-logo">
@@ -359,7 +357,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
       </button>
     </div>
 
-    <!-- LIST PANEL (Pendientes / Resultados) -->
     <div class="tab-panel active" id="panel-list">
     <div class="stats-row">
       <div class="stat-card"><div class="label">Clientes</div><div class="value" id="statClients">0</div><div class="sub">con reconocimientos</div></div>
@@ -379,18 +376,15 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
     <div class="groups-list" id="groupsList"></div>
     </div>
 
-    <!-- ANALYTICS PANEL -->
     <div class="tab-panel" id="panel-analisis">
       <div class="analytics-wrap" id="analyticsWrap">
         <div class="loading-row">Cargando análisis…</div>
       </div>
     </div>
 
-
   </main>
 </div>
 
-<!-- DETAIL MODAL -->
 <div class="modal-backdrop" id="detailBackdrop">
   <div class="detail-modal">
     <div class="modal-header">
@@ -409,6 +403,10 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
         <input type="text" id="mGerencialInput" class="obs-input-inline" placeholder="Observación de aprobación / rechazo (gerencia)…">
       </div>
       <div class="modal-footer-row actions-row" id="mActions">
+        <button class="btn-action btn-edit-modal" id="btnEditSku">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          Editar
+        </button>
         <button class="btn-action btn-print-modal" id="btnPrintSku">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
           Imprimir
@@ -426,7 +424,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- CONFIRM MODAL -->
 <div class="modal-backdrop" id="confirmBackdrop">
   <div class="confirm-modal">
     <div class="confirm-icon" id="confirmIcon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
@@ -443,7 +440,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- REVERT PASSWORD MODAL -->
 <div class="modal-backdrop" id="revertBackdrop">
   <div class="revert-modal">
     <div class="confirm-icon revert" style="margin-bottom:.9rem">
@@ -468,7 +464,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- DELETE MODAL -->
 <div class="modal-backdrop" id="deleteBackdrop">
   <div class="delete-modal">
     <div class="confirm-icon reject" style="margin-bottom:.9rem">
@@ -497,7 +492,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- LIGHTBOX with zoom -->
 <div id="lightboxBackdrop">
   <div class="lb-toolbar">
     <div class="lb-toolbar-left">
@@ -536,7 +530,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- PDF hidden -->
 <div id="pdfContent"></div>
 
 <script>
@@ -552,6 +545,7 @@ let filteredRecords = [];
 let currentRecord = null;
 let pendingAction = null;
 let revertRecordId = null;
+let isEditing = false; 
 
 // ── AUTH ────────────────────────────────────────────────────
 async function checkUser() {
@@ -708,7 +702,7 @@ function renderSkuRow(item) {
   const statusTag = st==='PENDIENTE' ? '<span class="sku-status status-pending">Pendiente</span>'
     : st==='APROBADO' ? '<span class="sku-status status-approved">Aprobado</span>'
     : '<span class="sku-status status-rejected">Rechazado</span>';
-  // Revert button only in RESULTADO tab, on each SKU row
+  
   const revertBtn = currentTab==='RESULTADO' ? `
     <button class="group-btn-pdf revert" onclick="event.stopPropagation();openRevertModal(${item.id})" title="Revertir a Pendiente" style="padding:.2rem .5rem;font-size:.68rem">
       <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -752,6 +746,13 @@ function openDetailModal(id) {
   const data=allRecords.find(r=>String(r.id)===String(id));
   if(!data) return;
   currentRecord=data;
+  
+  // Reset Edit state
+  isEditing = false;
+  const btnEdit = document.getElementById('btnEditSku');
+  btnEdit.className = 'btn-action btn-edit-modal';
+  btnEdit.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Editar`;
+
   document.getElementById('mTitle').textContent=esc(data.producto)+' — '+esc(data.cliente_nombre);
   document.getElementById('mSubtitle').textContent=`ID ${data.id} · ${new Date(data.created_at).toLocaleString('es-VE')}`;
   const isPending=data.estado_proceso==='PENDIENTE';
@@ -773,6 +774,7 @@ function openDetailModal(id) {
   const obsV=data.observaciones?`<div class="obs-display"><div class="obs-title">Obs. del vendedor</div><p>${esc(data.observaciones)}</p></div>`:'';
   const obsG=(!isPending&&data.observaciones_gerencial)?`<div class="obs-display gerencial"><div class="obs-title">Obs. de gerencia</div><p>${esc(data.observaciones_gerencial)}</p></div>`:'';
 
+  // OJO: Los <span id="val_..."> engloban SOLO el número, los símbolos van por fuera para no romperse al cambiar a <input>
   document.getElementById('mBody').innerHTML=`
     <div class="detail-grid">
       <div>
@@ -787,30 +789,30 @@ function openDetailModal(id) {
         </div>
         <div class="info-block" style="background:var(--blue-bg);border-color:var(--blue-border);margin-bottom:1rem">
           <h4 style="color:var(--blue)">Factura Anterior · ${esc(data.numero_factura)}</h4>
-          <div class="kv-row"><span class="k">Pacas compradas</span><span class="v">${data.pacas_factura}</span></div>
-          <div class="kv-row"><span class="k">Pacas promo/regalo</span><span class="v">${data.promo_regalo}</span></div>
-          <div class="kv-row"><span class="k">Precio bruto</span><span class="v">$${data.precio_compra}</span></div>
-          <div class="kv-row"><span class="k">Prontopago</span><span class="v">${data.prontopago_anterior_pct||0}%</span></div>
+          <div class="kv-row"><span class="k">Pacas compradas</span><span class="v"><span id="val_pacas_factura">${data.pacas_factura}</span></span></div>
+          <div class="kv-row"><span class="k">Pacas promo/regalo</span><span class="v"><span id="val_promo_regalo">${data.promo_regalo}</span></span></div>
+          <div class="kv-row"><span class="k">Precio bruto</span><span class="v">$<span id="val_precio_compra">${data.precio_compra}</span></span></div>
+          <div class="kv-row"><span class="k">Prontopago</span><span class="v"><span id="val_prontopago_anterior_pct">${data.prontopago_anterior_pct||0}</span>%</span></div>
           <hr class="divider">
-          <div class="kv-row kv-total" style="color:var(--blue)"><span class="k">Precio neto final</span><span class="v">$${data.precio_anterior}</span></div>
+          <div class="kv-row kv-total" style="color:var(--blue)"><span class="k">Precio neto final</span><span class="v">$<span id="val_precio_anterior">${data.precio_anterior}</span></span></div>
         </div>
         <div class="info-block" style="background:var(--amber-bg);border-color:var(--amber-border)">
           <h4 style="color:var(--amber)">Valores Actuales de Mercado</h4>
-          <div class="kv-row"><span class="k">Pacas estimadas</span><span class="v">${data.pacas_totales}</span></div>
-          <div class="kv-row"><span class="k">Pacas regaladas</span><span class="v">${data.pacas_regaladas}</span></div>
-          <div class="kv-row"><span class="k">Precio bruto</span><span class="v">$${data.precio_actual}</span></div>
-          <div class="kv-row"><span class="k">Prontopago</span><span class="v">${data.prontopago_actual_pct||0}%</span></div>
+          <div class="kv-row"><span class="k">Pacas estimadas</span><span class="v"><span id="val_pacas_totales">${data.pacas_totales}</span></span></div>
+          <div class="kv-row"><span class="k">Pacas regaladas</span><span class="v"><span id="val_pacas_regaladas">${data.pacas_regaladas}</span></span></div>
+          <div class="kv-row"><span class="k">Precio bruto</span><span class="v">$<span id="val_precio_actual">${data.precio_actual}</span></span></div>
+          <div class="kv-row"><span class="k">Prontopago</span><span class="v"><span id="val_prontopago_actual_pct">${data.prontopago_actual_pct||0}</span>%</span></div>
           <hr class="divider">
-          <div class="kv-row kv-total" style="color:var(--amber)"><span class="k">Precio neto final</span><span class="v">$${data.precio_final}</span></div>
+          <div class="kv-row kv-total" style="color:var(--amber)"><span class="k">Precio neto final</span><span class="v">$<span id="val_precio_final">${data.precio_final}</span></span></div>
         </div>
       </div>
       <div>
         <div class="result-block" style="margin-bottom:1rem">
           <h4>Resultado de Compensación</h4>
-          <div class="kv-row"><span class="k">Inv. a reconocer</span><span class="v">${data.pacas_a_reconocer} pacas</span></div>
-          <div class="kv-row"><span class="k">Diferencia / paca</span><span class="v" style="color:var(--amber)">$${data.diferencia_paca}</span></div>
-          <div class="result-total-row"><span class="result-total-label">Total nota crédito</span><span class="result-total-val">$${data.total_compensar}</span></div>
-          <div class="kv-row"><span class="k">Equivalente en producto</span><span class="v" style="color:var(--blue)">+${data.pacas_a_entregar} pacas</span></div>
+          <div class="kv-row"><span class="k">Inv. a reconocer</span><span class="v"><span id="val_pacas_a_reconocer">${data.pacas_a_reconocer}</span> pacas</span></div>
+          <div class="kv-row"><span class="k">Diferencia / paca</span><span class="v" style="color:var(--amber)">$<span id="val_diferencia_paca">${data.diferencia_paca}</span></span></div>
+          <div class="result-total-row"><span class="result-total-label">Total nota crédito</span><span class="result-total-val">$<span id="val_total_compensar">${data.total_compensar}</span></span></div>
+          <div class="kv-row"><span class="k">Equivalente en producto</span><span class="v" style="color:var(--blue)">+<span id="val_pacas_a_entregar">${data.pacas_a_entregar}</span> pacas</span></div>
         </div>
         <div class="photos-block"><h4>Evidencias fotográficas (${photos.length})</h4>${photosHtml}</div>
       </div>
@@ -824,6 +826,120 @@ function closeDetailModal(){
 }
 document.getElementById('btnCloseDetail').addEventListener('click',closeDetailModal);
 document.getElementById('detailBackdrop').addEventListener('click',e=>{if(e.target===document.getElementById('detailBackdrop'))closeDetailModal();});
+
+// ── EDIT / SAVE LOGIC ───────────────────────────────────────
+document.getElementById('btnEditSku').addEventListener('click', async () => {
+  if (!currentRecord) return;
+  const btn = document.getElementById('btnEditSku');
+
+  if (!isEditing) {
+    // 1. INICIAR MODO EDICIÓN
+    isEditing = true;
+    
+    // Nombres de los campos editables
+    const fields = [
+      'pacas_factura', 'promo_regalo', 'precio_compra', 'prontopago_anterior_pct',
+      'pacas_totales', 'pacas_regaladas', 'precio_actual', 'prontopago_actual_pct',
+      'pacas_a_reconocer'
+    ];
+
+    fields.forEach(f => {
+      const el = document.getElementById('val_' + f);
+      if(el) {
+        let val = currentRecord[f] || 0;
+        el.innerHTML = `<input type="number" step="any" id="input_${f}" value="${val}" class="obs-input-inline" style="width:70px; padding:0.2rem 0.4rem; font-size:0.8rem; text-align:right; height:auto; margin:-0.2rem 0;">`;
+      }
+    });
+
+    btn.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Guardar`;
+    btn.className = 'btn-action btn-approve';
+    
+  } else {
+    // 2. GUARDAR CAMBIOS Y RECALCULAR
+    btn.innerHTML = 'Guardando...';
+    btn.disabled = true;
+
+    // Obtener valores de los inputs. (Pacas a Int, Precios/Porcentajes a Float)
+    const pacas_factura = parseInt(document.getElementById('input_pacas_factura').value, 10) || 0;
+    const promo_regalo = parseInt(document.getElementById('input_promo_regalo').value, 10) || 0;
+    const pacas_totales = parseInt(document.getElementById('input_pacas_totales').value, 10) || 0;
+    const pacas_regaladas = parseInt(document.getElementById('input_pacas_regaladas').value, 10) || 0;
+    const pacas_a_reconocer = parseInt(document.getElementById('input_pacas_a_reconocer').value, 10) || 0;
+
+    const precio_compra = parseFloat(document.getElementById('input_precio_compra').value) || 0;
+    const prontopago_anterior_pct = parseFloat(document.getElementById('input_prontopago_anterior_pct').value) || 0;
+    const precio_actual = parseFloat(document.getElementById('input_precio_actual').value) || 0;
+    const prontopago_actual_pct = parseFloat(document.getElementById('input_prontopago_actual_pct').value) || 0;
+
+    // === LÓGICA MATEMÁTICA DE RECÁLCULO ===
+    
+    // 1. Precio Neto Final (Factura Anterior)
+    let base_anterior = 0;
+    if ((pacas_factura + promo_regalo) > 0) {
+        base_anterior = (pacas_factura * precio_compra) / (pacas_factura + promo_regalo);
+    }
+    const precio_anterior = base_anterior * (1 - (prontopago_anterior_pct / 100));
+
+    // 2. Precio Neto Final (Valores Actuales)
+    let base_actual = 0;
+    if ((pacas_totales + pacas_regaladas) > 0) {
+        base_actual = (pacas_totales * precio_actual) / (pacas_totales + pacas_regaladas);
+    }
+    const precio_final = base_actual * (1 - (prontopago_actual_pct / 100));
+
+    // 3. Diferencia y Compensación Total
+    const diferencia_paca = precio_anterior - precio_final;
+    const total_compensar = pacas_a_reconocer * diferencia_paca;
+    
+    // 4. Equivalente en producto (siempre redondeado hacia abajo)
+    const pacas_a_entregar = precio_final > 0 ? Math.floor(total_compensar / precio_final) : 0;
+
+    // Payload de base de datos
+    const updates = {
+      pacas_factura,
+      promo_regalo,
+      precio_compra: parseFloat(precio_compra.toFixed(2)),
+      prontopago_anterior_pct,
+      pacas_totales,
+      pacas_regaladas,
+      precio_actual: parseFloat(precio_actual.toFixed(2)),
+      prontopago_actual_pct,
+      pacas_a_reconocer,
+      // Calculados:
+      precio_anterior: parseFloat(precio_anterior.toFixed(2)),
+      precio_final: parseFloat(precio_final.toFixed(2)),
+      diferencia_paca: parseFloat(diferencia_paca.toFixed(2)),
+      total_compensar: parseFloat(total_compensar.toFixed(2)),
+      pacas_a_entregar
+    };
+
+    // Actualizar en BD
+    const { error } = await sb.from('compensaciones').update(updates).eq('id', currentRecord.id);
+
+    if (error) {
+      alert('Error al guardar: ' + error.message);
+      btn.disabled = false;
+      btn.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Guardar`;
+      return;
+    }
+
+    // Actualizar caché de records en el Front
+    Object.assign(currentRecord, updates);
+    const idx = allRecords.findIndex(r => r.id === currentRecord.id);
+    if (idx !== -1) allRecords[idx] = currentRecord;
+    const fIdx = filteredRecords.findIndex(r => r.id === currentRecord.id);
+    if (fIdx !== -1) filteredRecords[fIdx] = currentRecord;
+
+    // Finalizar guardado
+    btn.disabled = false;
+    isEditing = false;
+    
+    // Recargar vista para ver cálculos finalizados
+    openDetailModal(currentRecord.id);
+    renderGroups();
+    updateStats();
+  }
+});
 
 // ── PRINT single SKU ────────────────────────────────────────
 document.getElementById('btnPrintSku').addEventListener('click',()=>{
