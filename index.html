@@ -316,6 +316,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="loginWrap">
   <div class="login-card">
     <div class="login-logo">
@@ -330,6 +331,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
+<!-- APP -->
 <div id="appWrap">
   <header>
     <div class="header-logo">
@@ -354,11 +356,12 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
         Resultados <span class="tab-count" id="cntResult">0</span>
       </button>
       <button class="tab-btn" data-tab="ANALISIS">
-        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012-2h-2a2 2 0 01-2-2z"/></svg>
         Análisis
       </button>
     </div>
 
+    <!-- LIST PANEL -->
     <div class="tab-panel active" id="panel-list">
     <div class="stats-row">
       <div class="stat-card"><div class="label">Clientes</div><div class="value" id="statClients">0</div><div class="sub">con reconocimientos</div></div>
@@ -383,6 +386,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
     <div class="groups-list" id="groupsList"></div>
     </div>
 
+    <!-- ANALYTICS PANEL -->
     <div class="tab-panel" id="panel-analisis">
       <div class="analytics-wrap" id="analyticsWrap">
         <div class="loading-row">Cargando análisis…</div>
@@ -392,6 +396,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </main>
 </div>
 
+<!-- DETAIL MODAL -->
 <div class="modal-backdrop" id="detailBackdrop">
   <div class="detail-modal">
     <div class="modal-header">
@@ -431,6 +436,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
+<!-- CONFIRM MODAL -->
 <div class="modal-backdrop" id="confirmBackdrop">
   <div class="confirm-modal">
     <div class="confirm-icon" id="confirmIcon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
@@ -447,6 +453,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
+<!-- REVERT PASSWORD MODAL -->
 <div class="modal-backdrop" id="revertBackdrop">
   <div class="revert-modal">
     <div class="confirm-icon revert" style="margin-bottom:.9rem">
@@ -471,6 +478,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
+<!-- DELETE MODAL -->
 <div class="modal-backdrop" id="deleteBackdrop">
   <div class="delete-modal">
     <div class="confirm-icon reject" style="margin-bottom:.9rem">
@@ -499,6 +507,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
+<!-- LIGHTBOX with zoom -->
 <div id="lightboxBackdrop">
   <div class="lb-toolbar">
     <div class="lb-toolbar-left">
@@ -544,6 +553,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
+<!-- PDF hidden -->
 <div id="pdfContent"></div>
 
 <script>
@@ -873,7 +883,7 @@ function openDetailModal(id) {
             <div class="info-item"><div class="l">Vendedor</div><div class="v">${esc(data.promotor_nombre)}</div></div>
             <div class="info-item"><div class="l">Cliente</div><div class="v">${esc(data.cliente_nombre)}</div></div>
             <div class="info-item"><div class="l">Producto</div><div class="v">${esc(data.producto)}</div></div>
-            <div class="info-item"><div class="l">Tipo Cierre</div><div class="v"><span id="val_tipo_cierre">${esc(data.tipo_cierre)}</span>${data.precio_fijo_cliente?' ($'+data.precio_fijo_cliente+')':''}</div></div>
+            <div class="info-item"><div class="l">Tipo Cierre</div><div class="v"><span id="val_tipo_cierre" style="display:inline-block; width:100%;">${esc(data.tipo_cierre)}</span>${data.precio_fijo_cliente?' ($'+data.precio_fijo_cliente+')':''}</div></div>
           </div>${obsV}${obsG}
         </div>
         <div class="info-block" style="background:var(--blue-bg);border-color:var(--blue-border);margin-bottom:1rem">
@@ -940,15 +950,27 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
       }
     });
 
-    // Campo de Tipo de Cierre
+    // Campo de Tipo de Cierre (Modificado para verse 100% como un menú nativo seleccionable)
     const elTipo = document.getElementById('val_tipo_cierre');
     if (elTipo) {
-      const currentVal = currentRecord.tipo_cierre || '';
-      elTipo.innerHTML = `<select id="input_tipo_cierre" class="obs-input-inline" style="width:100%; padding:0.2rem; font-size:0.8rem; height:auto; margin:-0.2rem 0;">
-          <option value="CREDITO" ${currentVal==='CREDITO'?'selected':''}>CREDITO</option>
-          <option value="PEDIDO" ${currentVal==='PEDIDO'?'selected':''}>PEDIDO</option>
-          <option value="REPOSICIÓN DE PRODUCTO" ${currentVal==='REPOSICIÓN DE PRODUCTO'?'selected':''}>REPOSICIÓN DE PRODUCTO</option>
-      </select>`;
+      const currentVal = (currentRecord.tipo_cierre || '').trim().toUpperCase();
+      let optsHtml = '';
+      
+      const standardOpts = ['CREDITO', 'PEDIDO', 'REPOSICIÓN DE PRODUCTO'];
+      if (currentVal && !standardOpts.includes(currentVal)) {
+          standardOpts.push(currentVal); // Si existe otro valor previo en la BD, lo agrega
+      }
+
+      standardOpts.forEach(op => {
+          optsHtml += `<option value="${op}" ${currentVal === op ? 'selected' : ''}>${op}</option>`;
+      });
+
+      // Se usa un div envolvente y appearance:auto para forzar la UI del sistema operativo (flechas del dropdown)
+      elTipo.innerHTML = `
+        <select id="input_tipo_cierre" class="obs-input-inline" style="width:100%; padding:0.4rem; font-size:0.85rem; border: 1.5px solid var(--brand); color: #000; background: #fff; border-radius: 6px; cursor: pointer; appearance: auto; -webkit-appearance: menulist;">
+            ${optsHtml}
+        </select>
+      `;
     }
 
     btn.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Guardar`;
@@ -1372,9 +1394,8 @@ function getPdfStyles(){
   .pdf-total-row.aprobado{background:#ecfdf5;border-top:2px solid #a7f3d0;}
   .pdf-total-row.rechazado{background:#fef2f2;border-top:2px solid #fecaca;}
   .pdf-total-row.pendiente{background:#fffbeb;border-top:2px solid #fde68a;}
-  .pdf-grand-total{background:#f4f6fb;color:#000;border:2px solid #1a2b56;border-radius:8px;padding:.85rem 1.1rem;margin-top:1.25rem;display:flex;justify-content:space-between;align-items:center}
+  .pdf-grand-total{background:#f4f6fb;color:#000;border:2px solid #1a2b56;border-radius:8px;padding:.85rem 1.1rem;margin-top:1.25rem;display:flex;justify-content:space-between;align-items:flex-start}
   .pdf-grand-total .gtl{font-size:.75rem;font-weight:800;opacity:.9}
-  .pdf-grand-total .gtv{font-size:1.2rem;font-weight:900}
   .pdf-grand-total .gtp{font-size:.85rem;opacity:.9;margin-top:.1rem; font-weight:700;}
   .pdf-footer{margin-top:1.5rem;border-top:1px solid #e5e8f0;padding-top:.65rem;font-size:.68rem;color:#9ca3af;display:flex;justify-content:space-between}
   `;
@@ -1389,15 +1410,13 @@ function buildPdfContent(records){
   let totalRech = 0, pacasRech = 0;
 
   records.forEach(r => {
-    const tc = (r.tipo_cierre || '').toUpperCase();
-    const isPedido = tc.includes('PEDIDO') || tc.includes('PRODUCTO');
-
+    // AHORA ACUMULAMOS AMBOS INDEPENDIENTEMENTE DEL TIPO DE CIERRE
     if(r.estado_proceso === 'APROBADO') {
-      if(isPedido) pacasApro += (r.pacas_a_entregar || 0);
-      else totalApro += (r.total_compensar || 0);
+      totalApro += (r.total_compensar || 0);
+      pacasApro += (r.pacas_a_entregar || 0);
     } else if (r.estado_proceso === 'RECHAZADO') {
-      if(isPedido) pacasRech += (r.pacas_a_entregar || 0);
-      else totalRech += (r.total_compensar || 0);
+      totalRech += (r.total_compensar || 0);
+      pacasRech += (r.pacas_a_entregar || 0);
     }
   });
 
@@ -1480,14 +1499,20 @@ function buildPdfContent(records){
   ${(cntA>0||cntR>0)?`
   <div class="pdf-grand-total">
     <div>
-      <div class="gtl">RESUMEN FINAL · ${esc(clientName)}</div>
+      <div class="gtl" style="margin-bottom:0.4rem">RESUMEN FINAL · ${esc(clientName)}</div>
       ${cntA>0?`<div class="gtp">✓ Aprobados procesados</div>`:''}
       ${cntR>0?`<div class="gtp">✗ Rechazados procesados</div>`:''}
     </div>
-    <div style="text-align:right">
-      <div class="gtl">TOTAL A COMPENSAR (APROBADOS)</div>
-      <div class="gtv">$${totalApro.toFixed(2)}</div>
-      <div class="gtp">${pacasApro} pacas equivalentes</div>
+    <div style="min-width: 220px;">
+      <div class="gtl" style="text-align:right; margin-bottom: 0.5rem;">TOTAL A COMPENSAR (APROBADOS)</div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:.3rem; font-size:.95rem; font-weight:800; color:#000;">
+        <span>Total Nota Crédito:</span>
+        <span>$${totalApro.toFixed(2)}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:.95rem; font-weight:800; color:#000;">
+        <span>Total en Pacas:</span>
+        <span>${pacasApro} pacas</span>
+      </div>
     </div>
   </div>`:''}
 
@@ -1565,15 +1590,13 @@ function generateJsPDF(records, clientName){
 
   let totalApro = 0, pacasApro = 0, totalRech = 0, pacasRech = 0;
   records.forEach(r => {
-    const tc = (r.tipo_cierre || '').toUpperCase();
-    const isPedido = tc.includes('PEDIDO') || tc.includes('PRODUCTO');
-
+    // AHORA ACUMULAMOS AMBOS INDEPENDIENTEMENTE DEL TIPO DE CIERRE
     if(r.estado_proceso === 'APROBADO') {
-      if(isPedido) pacasApro += (r.pacas_a_entregar || 0);
-      else totalApro += (r.total_compensar || 0);
+      totalApro += (r.total_compensar || 0);
+      pacasApro += (r.pacas_a_entregar || 0);
     } else if (r.estado_proceso === 'RECHAZADO') {
-      if(isPedido) pacasRech += (r.pacas_a_entregar || 0);
-      else totalRech += (r.total_compensar || 0);
+      totalRech += (r.total_compensar || 0);
+      pacasRech += (r.pacas_a_entregar || 0);
     }
   });
 
@@ -1666,15 +1689,25 @@ function generateJsPDF(records, clientName){
     y+=10;y+=4;
   });
 
-  // Grand total (Todo en negro)
-  needsPage(22);y+=2;
-  rc(M,y,CW,16,[240,240,240]);
-  rc(M,y,CW,16,null,BLACK);
-  sf(7.5,'bold',BLACK);doc.text('RESUMEN FINAL',M+3,y+5);
-  sf(12,'bold',BLACK);doc.text(`$${totalApro.toFixed(2)}`,W-M-2,y+8,{align:'right'});
-  sf(8,'bold',BLACK);doc.text(`${pacasApro} pacas`,W-M-2,y+13,{align:'right'});
-  sf(7.5,'bold',BLACK);doc.text('Total a compensar (aprobados)',M+3,y+10);
-  y+=20;
+  // Grand total (Todo en negro y con doble desglose explícito)
+  needsPage(24);y+=2;
+  rc(M,y,CW,20,[240,240,240]);
+  rc(M,y,CW,20,null,BLACK);
+  
+  sf(7.5,'bold',BLACK);doc.text('RESUMEN FINAL',M+3,y+6);
+  sf(6.5,'normal',BLACK);
+  if(cntA>0) doc.text('✓ Aprobados procesados',M+3,y+11);
+  if(cntR>0) doc.text('✗ Rechazados procesados',M+3,y+15);
+
+  sf(7.5,'bold',BLACK);doc.text('TOTAL A COMPENSAR (APROBADOS)', W-M-2, y+6, {align:'right'});
+  
+  sf(9,'bold',BLACK);doc.text('Total Nota Crédito:', W-M-35, y+11, {align:'right'});
+  sf(10,'bold',BLACK);doc.text(`$${totalApro.toFixed(2)}`, W-M-2, y+11, {align:'right'});
+  
+  sf(9,'bold',BLACK);doc.text('Total en Pacas:', W-M-35, y+16, {align:'right'});
+  sf(10,'bold',BLACK);doc.text(`${pacasApro} pacas`, W-M-2, y+16, {align:'right'});
+  
+  y+=24;
 
   // Footer
   ln(M,y,W-M,y,LGRAY);y+=4;
