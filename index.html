@@ -316,7 +316,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginWrap">
   <div class="login-card">
     <div class="login-logo">
@@ -331,7 +330,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- APP -->
 <div id="appWrap">
   <header>
     <div class="header-logo">
@@ -361,7 +359,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
       </button>
     </div>
 
-    <!-- LIST PANEL -->
     <div class="tab-panel active" id="panel-list">
     <div class="stats-row">
       <div class="stat-card"><div class="label">Clientes</div><div class="value" id="statClients">0</div><div class="sub">con reconocimientos</div></div>
@@ -386,7 +383,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
     <div class="groups-list" id="groupsList"></div>
     </div>
 
-    <!-- ANALYTICS PANEL -->
     <div class="tab-panel" id="panel-analisis">
       <div class="analytics-wrap" id="analyticsWrap">
         <div class="loading-row">Cargando análisis…</div>
@@ -396,7 +392,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </main>
 </div>
 
-<!-- DETAIL MODAL -->
 <div class="modal-backdrop" id="detailBackdrop">
   <div class="detail-modal">
     <div class="modal-header">
@@ -436,7 +431,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- CONFIRM MODAL -->
 <div class="modal-backdrop" id="confirmBackdrop">
   <div class="confirm-modal">
     <div class="confirm-icon" id="confirmIcon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
@@ -453,7 +447,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- REVERT PASSWORD MODAL -->
 <div class="modal-backdrop" id="revertBackdrop">
   <div class="revert-modal">
     <div class="confirm-icon revert" style="margin-bottom:.9rem">
@@ -478,7 +471,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- DELETE MODAL -->
 <div class="modal-backdrop" id="deleteBackdrop">
   <div class="delete-modal">
     <div class="confirm-icon reject" style="margin-bottom:.9rem">
@@ -507,7 +499,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- LIGHTBOX with zoom -->
 <div id="lightboxBackdrop">
   <div class="lb-toolbar">
     <div class="lb-toolbar-left">
@@ -553,7 +544,6 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
-<!-- PDF hidden -->
 <div id="pdfContent"></div>
 
 <script>
@@ -804,7 +794,6 @@ function renderSkuRow(item) {
       Eliminar
     </button>` : '';
 
-  // Differenciar visualmente entre Pedido y Credito con doble indicador
   const tc = (item.tipo_cierre || '').toUpperCase();
   const isPedido = tc.includes('PEDIDO') || tc.includes('PRODUCTO');
   
@@ -875,7 +864,6 @@ function openDetailModal(id) {
   const obsV=data.observaciones?`<div class="obs-display"><div class="obs-title">Obs. del vendedor</div><p>${esc(data.observaciones)}</p></div>`:'';
   const obsG=(!isPending&&data.observaciones_gerencial)?`<div class="obs-display gerencial"><div class="obs-title">Obs. de gerencia</div><p>${esc(data.observaciones_gerencial)}</p></div>`:'';
 
-  // OJO: Los <span id="val_..."> engloban SOLO el número, los símbolos van por fuera para no romperse al cambiar a <input>
   document.getElementById('mBody').innerHTML=`
     <div class="detail-grid">
       <div>
@@ -885,7 +873,7 @@ function openDetailModal(id) {
             <div class="info-item"><div class="l">Vendedor</div><div class="v">${esc(data.promotor_nombre)}</div></div>
             <div class="info-item"><div class="l">Cliente</div><div class="v">${esc(data.cliente_nombre)}</div></div>
             <div class="info-item"><div class="l">Producto</div><div class="v">${esc(data.producto)}</div></div>
-            <div class="info-item"><div class="l">Tipo Cierre</div><div class="v">${esc(data.tipo_cierre)}${data.precio_fijo_cliente?' ($'+data.precio_fijo_cliente+')':''}</div></div>
+            <div class="info-item"><div class="l">Tipo Cierre</div><div class="v"><span id="val_tipo_cierre">${esc(data.tipo_cierre)}</span>${data.precio_fijo_cliente?' ($'+data.precio_fijo_cliente+')':''}</div></div>
           </div>${obsV}${obsG}
         </div>
         <div class="info-block" style="background:var(--blue-bg);border-color:var(--blue-border);margin-bottom:1rem">
@@ -937,7 +925,7 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
     // 1. INICIAR MODO EDICIÓN
     isEditing = true;
     
-    // Nombres de los campos editables
+    // Nombres de los campos numericos editables
     const fields = [
       'pacas_factura', 'promo_regalo', 'precio_compra', 'prontopago_anterior_pct',
       'pacas_totales', 'pacas_regaladas', 'precio_actual', 'prontopago_actual_pct',
@@ -952,6 +940,17 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
       }
     });
 
+    // Campo de Tipo de Cierre
+    const elTipo = document.getElementById('val_tipo_cierre');
+    if (elTipo) {
+      const currentVal = currentRecord.tipo_cierre || '';
+      elTipo.innerHTML = `<select id="input_tipo_cierre" class="obs-input-inline" style="width:100%; padding:0.2rem; font-size:0.8rem; height:auto; margin:-0.2rem 0;">
+          <option value="CREDITO" ${currentVal==='CREDITO'?'selected':''}>CREDITO</option>
+          <option value="PEDIDO" ${currentVal==='PEDIDO'?'selected':''}>PEDIDO</option>
+          <option value="REPOSICIÓN DE PRODUCTO" ${currentVal==='REPOSICIÓN DE PRODUCTO'?'selected':''}>REPOSICIÓN DE PRODUCTO</option>
+      </select>`;
+    }
+
     btn.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Guardar`;
     btn.className = 'btn-action btn-approve';
     
@@ -960,7 +959,7 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
     btn.innerHTML = 'Guardando...';
     btn.disabled = true;
 
-    // Obtener valores de los inputs. (Pacas a Int, Precios/Porcentajes a Float)
+    // Obtener valores de los inputs numéricos. (Pacas a Int, Precios/Porcentajes a Float)
     const pacas_factura = parseInt(document.getElementById('input_pacas_factura').value, 10) || 0;
     const promo_regalo = parseInt(document.getElementById('input_promo_regalo').value, 10) || 0;
     const pacas_totales = parseInt(document.getElementById('input_pacas_totales').value, 10) || 0;
@@ -971,6 +970,10 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
     const prontopago_anterior_pct = parseFloat(document.getElementById('input_prontopago_anterior_pct').value) || 0;
     const precio_actual = parseFloat(document.getElementById('input_precio_actual').value) || 0;
     const prontopago_actual_pct = parseFloat(document.getElementById('input_prontopago_actual_pct').value) || 0;
+
+    // Obtener valor de tipo de cierre
+    const inputTipo = document.getElementById('input_tipo_cierre');
+    const tipo_cierre = inputTipo ? inputTipo.value : currentRecord.tipo_cierre;
 
     // === LÓGICA MATEMÁTICA DE RECÁLCULO ===
     
@@ -997,6 +1000,7 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
 
     // Payload de base de datos
     const updates = {
+      tipo_cierre,
       pacas_factura,
       promo_regalo,
       precio_compra: parseFloat(precio_compra.toFixed(2)),
@@ -1338,10 +1342,7 @@ function getPdfStyles(){
   .pdf-subtitle{font-size:.72rem;color:#6b7280;margin-top:.2rem}
   .pdf-summary-bar{background:#f4f6fb;border:1px solid #e5e8f0;border-radius:8px;padding:.65rem 1rem;margin-bottom:1.25rem;display:flex;gap:2rem;flex-wrap:wrap}
   .pdf-sum-item .sl{font-size:.65rem;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-  .pdf-sum-item .sv{font-size:.9rem;font-weight:800;color:#111}
-  .pdf-sum-item .sv.green{color:#059669}
-  .pdf-sum-item .sv.blue{color:#2563eb}
-  .pdf-sum-item .sv.red{color:#dc2626}
+  .pdf-sum-item .sv{font-size:.9rem;font-weight:900;color:#000 !important;} /* Siempre negro para valores */
   .pdf-sku-block{border:1px solid #e5e8f0;border-radius:8px;margin-bottom:1.1rem;overflow:hidden;page-break-inside:avoid}
   .pdf-sku-head{padding:.65rem .9rem;display:flex;justify-content:space-between;align-items:flex-start}
   .pdf-sku-head.approved{background:#ecfdf5;border-left:5px solid #059669}
@@ -1353,32 +1354,28 @@ function getPdfStyles(){
   .estado-badge.aprobado{background:#d1fae5;color:#059669}
   .estado-badge.rechazado{background:#fee2e2;color:#dc2626}
   .estado-badge.pendiente{background:#fef9c3;color:#a16207}
-  .pdf-sku-amt{font-weight:900;font-size:1rem;white-space:nowrap;margin-left:.5rem}
-  .pdf-sku-amt.aprobado{color:#059669}
-  .pdf-sku-amt.rechazado{color:#dc2626}
-  .pdf-sku-amt.pedido{color:#2563eb}
+  .pdf-sku-amt{font-weight:900;font-size:1rem;white-space:nowrap;margin-left:.5rem;color:#000 !important;} /* Siempre negro */
   .pdf-sku-body{padding:.7rem .9rem;background:#fff}
   .pdf-section-label{font-size:.65rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0.5rem 0 .3rem}
   .pdf-kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:.1rem .75rem;margin-bottom:.5rem}
   .pdf-kv{display:flex;justify-content:space-between;padding:.15rem 0;font-size:.73rem;border-bottom:1px dashed #f0f0f0}
   .pdf-kv:last-child{border-bottom:none}
   .pdf-kv .k{color:#6b7280}
-  .pdf-kv .v{font-weight:600}
+  .pdf-kv .v{font-weight:800; color:#000 !important;} /* Siempre negro */
   .pdf-motivo-box{margin:.5rem 0;padding:.5rem .75rem;border-radius:6px;font-size:.75rem}
   .pdf-motivo-box.vendedor{background:#fffbeb;border-left:3px solid #d97706}
   .pdf-motivo-box.gerencia{background:#eff6ff;border-left:3px solid #2563eb}
   .pdf-motivo-label{font-weight:700;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem}
   .pdf-motivo-box.vendedor .pdf-motivo-label{color:#d97706}
   .pdf-motivo-box.gerencia .pdf-motivo-label{color:#2563eb}
-  .pdf-total-row{padding:.65rem .9rem;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:.9rem}
-  .pdf-total-row.aprobado{background:#ecfdf5;border-top:2px solid #a7f3d0;color:#059669}
-  .pdf-total-row.rechazado{background:#fef2f2;border-top:2px solid #fecaca;color:#dc2626}
-  .pdf-total-row.pendiente{background:#fffbeb;border-top:2px solid #fde68a;color:#d97706}
-  .pdf-total-row .pacas{font-size:.75rem;color:inherit;font-weight:600;opacity:.75}
-  .pdf-grand-total{background:#1a2b56;color:#fff;border-radius:8px;padding:.85rem 1.1rem;margin-top:1.25rem;display:flex;justify-content:space-between;align-items:center}
-  .pdf-grand-total .gtl{font-size:.75rem;font-weight:600;opacity:.75}
+  .pdf-total-row{padding:.65rem .9rem;display:block;font-weight:800;font-size:.9rem;color:#000 !important;}
+  .pdf-total-row.aprobado{background:#ecfdf5;border-top:2px solid #a7f3d0;}
+  .pdf-total-row.rechazado{background:#fef2f2;border-top:2px solid #fecaca;}
+  .pdf-total-row.pendiente{background:#fffbeb;border-top:2px solid #fde68a;}
+  .pdf-grand-total{background:#f4f6fb;color:#000;border:2px solid #1a2b56;border-radius:8px;padding:.85rem 1.1rem;margin-top:1.25rem;display:flex;justify-content:space-between;align-items:center}
+  .pdf-grand-total .gtl{font-size:.75rem;font-weight:800;opacity:.9}
   .pdf-grand-total .gtv{font-size:1.2rem;font-weight:900}
-  .pdf-grand-total .gtp{font-size:.8rem;opacity:.7;margin-top:.1rem}
+  .pdf-grand-total .gtp{font-size:.85rem;opacity:.9;margin-top:.1rem; font-weight:700;}
   .pdf-footer{margin-top:1.5rem;border-top:1px solid #e5e8f0;padding-top:.65rem;font-size:.68rem;color:#9ca3af;display:flex;justify-content:space-between}
   `;
 }
@@ -1429,8 +1426,8 @@ function buildPdfContent(records){
   </div>
 
   <div class="pdf-summary-bar">
-    ${(totalApro>0 || pacasApro>0)?`<div class="pdf-sum-item"><div class="sl">Total Aprobado</div><div class="sv green">$${totalApro.toFixed(2)}</div><div style="font-size:.68rem;color:#2563eb">+${pacasApro} pacas a despachar</div></div>`:''}
-    ${(totalRech>0 || pacasRech>0)?`<div class="pdf-sum-item"><div class="sl">Total Rechazado</div><div class="sv red">$${totalRech.toFixed(2)}</div><div style="font-size:.68rem;color:#dc2626">${pacasRech} pacas equiv.</div></div>`:''}
+    ${(totalApro>0 || pacasApro>0)?`<div class="pdf-sum-item"><div class="sl">Total Aprobado</div><div class="sv">$${totalApro.toFixed(2)}</div><div class="sv" style="font-size:.75rem;">+${pacasApro} pacas despachar</div></div>`:''}
+    ${(totalRech>0 || pacasRech>0)?`<div class="pdf-sum-item"><div class="sl">Total Rechazado</div><div class="sv">$${totalRech.toFixed(2)}</div><div class="sv" style="font-size:.75rem;">${pacasRech} pacas equiv.</div></div>`:''}
     ${cntP>0?`<div class="pdf-sum-item"><div class="sl">Pendientes</div><div class="sv">${cntP}</div></div>`:''}
     <div class="pdf-sum-item"><div class="sl">SKUs Totales</div><div class="sv">${records.length}</div></div>
   </div>
@@ -1438,14 +1435,10 @@ function buildPdfContent(records){
   ${sorted.map((r,i)=>{
     const isApro=r.estado_proceso==='APROBADO';
     const isRech=r.estado_proceso==='RECHAZADO';
-    const tc = (r.tipo_cierre || '').toUpperCase();
-    const isPedido = tc.includes('PEDIDO') || tc.includes('PRODUCTO');
 
     const cls=isApro?'aprobado':isRech?'rechazado':'pendiente';
     const headCls=isApro?'approved':isRech?'rejected':'pending';
     const estadoLabel=isApro?'APROBADO':isRech?'RECHAZADO':'PENDIENTE';
-    const displayAmount = isPedido ? `+${r.pacas_a_entregar} pacas` : `$${(r.total_compensar||0).toFixed(2)}`;
-    const amtColorClass = isPedido ? 'pedido' : cls;
 
     return `
     <div class="pdf-sku-block">
@@ -1457,7 +1450,7 @@ function buildPdfContent(records){
           </div>
           <div class="pdf-sku-meta">Fac. <strong>${esc(r.numero_factura)}</strong> · Cierre: ${esc(r.tipo_cierre)} · Vendedor: ${esc(r.promotor_nombre)}</div>
         </div>
-        <span class="pdf-sku-amt ${amtColorClass}">${displayAmount}</span>
+        <span class="pdf-sku-amt">$${(r.total_compensar||0).toFixed(2)} | ${r.pacas_a_entregar} pacas</span>
       </div>
       <div class="pdf-sku-body">
         <div class="pdf-section-label">Detalle de la compensación</div>
@@ -1473,9 +1466,13 @@ function buildPdfContent(records){
         ${r.observaciones_gerencial?`<div class="pdf-motivo-box gerencia"><div class="pdf-motivo-label">Observación de gerencia · Motivo de ${isApro?'aprobación':'rechazo'}</div><div>${esc(r.observaciones_gerencial)}</div></div>`:(!isRech&&!r.observaciones_gerencial?'':'<div class="pdf-motivo-box gerencia" style="opacity:.5"><div class="pdf-motivo-label">Observación de gerencia</div><div style="font-style:italic;color:#6b7280">Sin observación registrada</div></div>')}
       </div>
       <div class="pdf-total-row ${cls}">
-        <span>Nota crédito — ${esc(r.producto)}</span>
-        <div style="text-align:right; color: ${isPedido ? '#2563eb' : 'inherit'};">
-          <div>${displayAmount}</div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.3rem;">
+          <span>Nota crédito — ${esc(r.producto)}</span>
+          <span>$${(r.total_compensar||0).toFixed(2)}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:.85rem;">
+          <span>Cantidad en Pacas</span>
+          <span>${r.pacas_a_entregar} pacas</span>
         </div>
       </div>
     </div>`; }).join('')}
@@ -1484,11 +1481,11 @@ function buildPdfContent(records){
   <div class="pdf-grand-total">
     <div>
       <div class="gtl">RESUMEN FINAL · ${esc(clientName)}</div>
-      ${cntA>0?`<div class="gtp">✓ Aprobado: $${totalApro.toFixed(2)} · ${pacasApro} pacas equiv.</div>`:''}
-      ${cntR>0?`<div class="gtp" style="color:#fca5a5">✗ Rechazado: $${totalRech.toFixed(2)} · ${pacasRech} pacas equiv.</div>`:''}
+      ${cntA>0?`<div class="gtp">✓ Aprobados procesados</div>`:''}
+      ${cntR>0?`<div class="gtp">✗ Rechazados procesados</div>`:''}
     </div>
     <div style="text-align:right">
-      <div class="gtl">TOTAL A COMPENSAR</div>
+      <div class="gtl">TOTAL A COMPENSAR (APROBADOS)</div>
       <div class="gtv">$${totalApro.toFixed(2)}</div>
       <div class="gtp">${pacasApro} pacas equivalentes</div>
     </div>
@@ -1544,7 +1541,7 @@ function generateJsPDF(records, clientName){
   let y=M;
 
   const NAVY=[26,43,86],GREEN=[5,150,105],RED=[220,38,38],AMBER=[217,119,6],BLUE=[37,99,235];
-  const GRAY=[107,114,128],LGRAY=[229,232,240],WHITE=[255,255,255];
+  const GRAY=[107,114,128],LGRAY=[229,232,240],WHITE=[255,255,255],BLACK=[0,0,0];
 
   const sf=(size,style='normal',color=[17,24,39])=>{doc.setFontSize(size);doc.setFont('helvetica',style);doc.setTextColor(...color);};
   const ln=(x1,y1,x2,y2,c=LGRAY,w=.3)=>{doc.setDrawColor(...c);doc.setLineWidth(w);doc.line(x1,y1,x2,y2);};
@@ -1589,16 +1586,16 @@ function generateJsPDF(records, clientName){
   sf(6.5,'bold',GRAY);doc.text('CLIENTE',M+4,y+5);
   sf(11,'bold',NAVY);doc.text(clientName,M+4,y+12);
   sf(6.5,'bold',GRAY);doc.text('TOTAL APROBADO',W-M-55,y+5);
-  sf(12,'bold',GREEN);doc.text(`$${totalApro.toFixed(2)}`,W-M-2,y+12,{align:'right'});
+  sf(12,'bold',BLACK);doc.text(`$${totalApro.toFixed(2)}`,W-M-2,y+12,{align:'right'});
   y+=20;
 
-  // Summary bar
-  const summCols=[[`${cntA} Aprobados`,`$${totalApro.toFixed(2)}`,GREEN],[`${cntR} Rechazados`,`$${totalRech.toFixed(2)}`,RED],[`${records.length} SKUs`,`${cntP} pendientes`,NAVY]];
+  // Summary bar (Cantidades en Negro)
+  const summCols=[[`$${totalApro.toFixed(2)} / +${pacasApro} pacas`,`${cntA} Aprobados`],[`$${totalRech.toFixed(2)} / ${pacasRech} pacas`,`${cntR} Rechazados`],[`${records.length} SKUs`,`${cntP} pendientes`]];
   const cw2=CW/3;
-  summCols.forEach(([lbl,sub,color],i)=>{
+  summCols.forEach(([val,sub],i)=>{
     rc(M+i*cw2,y,cw2-.4,12,[248,249,252]);rc(M+i*cw2,y,cw2-.4,12,null,LGRAY);
-    sf(8,'bold',color);doc.text(lbl,M+i*cw2+3,y+5.5);
-    sf(6.5,'normal',GRAY);doc.text(sub,M+i*cw2+3,y+10);
+    sf(8,'bold',BLACK);doc.text(val,M+i*cw2+3,y+5.5);
+    sf(6.5,'bold',BLACK);doc.text(sub,M+i*cw2+3,y+10);
   });
   y+=16;
   ln(M,y,W-M,y,NAVY,.4);y+=5;
@@ -1607,21 +1604,16 @@ function generateJsPDF(records, clientName){
   const sorted=[...records.filter(r=>r.estado_proceso==='APROBADO'),...records.filter(r=>r.estado_proceso==='RECHAZADO'),...records.filter(r=>r.estado_proceso==='PENDIENTE')];
   sorted.forEach((r,idx)=>{
     needsPage(55);
-    const tc = (r.tipo_cierre || '').toUpperCase();
-    const isPedido = tc.includes('PEDIDO') || tc.includes('PRODUCTO');
-
+    
     const isA=r.estado_proceso==='APROBADO',isR=r.estado_proceso==='RECHAZADO';
     const stC=isA?GREEN:isR?RED:AMBER;
     const stL=isA?'APROBADO':isR?'RECHAZADO':'PENDIENTE';
     const bgH=isA?[236,253,245]:isR?[254,242,242]:[255,251,235];
     
-    const displayAmount = isPedido ? `+${r.pacas_a_entregar} pacas` : `$${(r.total_compensar||0).toFixed(2)}`;
-    const amtColor = isPedido ? BLUE : stC;
-
-    // Header stripe
+    // Header stripe (Títulos y cantidades en negro)
     rc(M,y,4,9,stC);rc(M+4,y,CW-4,9,bgH);
-    sf(9,'bold',NAVY);doc.text(`${idx+1}. ${r.producto}`,M+8,y+6.5);
-    sf(8,'bold',amtColor);doc.text(displayAmount,W-M-2,y+6.5,{align:'right'});
+    sf(9,'bold',BLACK);doc.text(`${idx+1}. ${r.producto}`,M+8,y+6.5);
+    sf(8,'bold',BLACK);doc.text(`$${(r.total_compensar||0).toFixed(2)} / ${r.pacas_a_entregar} pacas`,W-M-2,y+6.5,{align:'right'});
     y+=9;
 
     // Badge + meta
@@ -1629,7 +1621,7 @@ function generateJsPDF(records, clientName){
     sf(6,'normal',GRAY);doc.text(`${stL}  ·  Fac. ${r.numero_factura||'-'}  ·  Cierre: ${r.tipo_cierre||'-'}  ·  Vendedor: ${r.promotor_nombre||'-'}`,M+3,y+4);
     y+=5.5;
 
-    // Data rows
+    // Data rows (Métricas en negro sólido)
     const rows=[
       ['Pacas factura',String(r.pacas_factura||'-'),'Pacas a reconocer',String(r.pacas_a_reconocer||'-')],
       ['Precio anterior (neto)','$'+r.precio_anterior,'Precio actual (neto)','$'+r.precio_final],
@@ -1639,8 +1631,8 @@ function generateJsPDF(records, clientName){
     rows.forEach(([k1,v1,k2,v2])=>{
       rc(M,y,hw-.3,6,[252,253,254]);rc(M+hw,y,hw,6,[252,253,254]);
       ln(M,y+6,M+CW,y+6,LGRAY,.15);
-      sf(5.5,'normal',GRAY);doc.text(k1,M+2.5,y+2.5);doc.text(k2,M+hw+2.5,y+2.5);
-      sf(6.5,'bold',[17,24,39]);doc.text(v1,M+2.5,y+5.5);doc.text(v2,M+hw+2.5,y+5.5);
+      sf(5.5,'bold',BLACK);doc.text(k1,M+2.5,y+2.5);doc.text(k2,M+hw+2.5,y+2.5);
+      sf(7,'bold',BLACK);doc.text(v1,M+2.5,y+5.5);doc.text(v2,M+hw+2.5,y+5.5);
       y+=6;
     });
 
@@ -1649,38 +1641,39 @@ function generateJsPDF(records, clientName){
       needsPage(9);
       rc(M,y,CW,8,[255,251,235]);rc(M,y,2.5,8,AMBER);
       sf(5.5,'bold',AMBER);doc.text('OBS. VENDEDOR:',M+4,y+3.2);
-      sf(6,'normal',[120,80,0]);
+      sf(6,'normal',BLACK);
       const t=doc.splitTextToSize(r.observaciones,CW-45);
       doc.text(t[0]||'',M+34,y+3.2);
-      if(t.length>1){sf(6,'normal',[120,80,0]);doc.text(t[1],M+4,y+6.5);}
+      if(t.length>1){sf(6,'normal',BLACK);doc.text(t[1],M+4,y+6.5);}
       y+=t.length>1?10:8;
     }
     if(r.observaciones_gerencial){
       needsPage(9);
       rc(M,y,CW,8,[239,246,255]);rc(M,y,2.5,8,BLUE);
       sf(5.5,'bold',BLUE);doc.text(`GERENCIA (${stL}):`,M+4,y+3.2);
-      sf(6,'normal',[30,58,138]);
+      sf(6,'normal',BLACK);
       const t=doc.splitTextToSize(r.observaciones_gerencial,CW-42);
       doc.text(t[0]||'',M+38,y+3.2);
       y+=8;
     }
 
-    // Total bar
-    rc(M,y,CW,8,stC);
-    sf(7.5,'bold',WHITE);doc.text('NOTA DE CRÉDITO',M+3,y+5.5);
-    doc.text(displayAmount,W-M-2,y+5.5,{align:'right'});
-    y+=8;y+=4;
+    // Total bar (Doble bloque Crédito y Pacas en Negro)
+    rc(M,y,CW,10,[240,240,240]);
+    sf(7.5,'bold',BLACK);doc.text('Nota de crédito',M+3,y+4);
+    sf(7.5,'bold',BLACK);doc.text(`$${(r.total_compensar||0).toFixed(2)}`,W-M-2,y+4,{align:'right'});
+    sf(7.5,'bold',BLACK);doc.text('Cantidad en Pacas',M+3,y+8.5);
+    sf(7.5,'bold',BLACK);doc.text(`${r.pacas_a_entregar} pacas`,W-M-2,y+8.5,{align:'right'});
+    y+=10;y+=4;
   });
 
-  // Grand total
-  needsPage(20);y+=2;
-  rc(M,y,CW,16,NAVY);
-  sf(6.5,'bold',[160,185,230]);doc.text('RESUMEN FINAL',M+3,y+5);
-  sf(11,'bold',WHITE);doc.text(`$${totalApro.toFixed(2)}`,W-M-2,y+10,{align:'right'});
-  sf(7.5,'normal',WHITE);doc.text('Total a compensar (aprobados)',M+3,y+10);
-  sf(6,'normal',[140,165,215]);
-  if(totalRech>0 || pacasRech>0)doc.text(`Rechazado: $${totalRech.toFixed(2)} | ${pacasRech} pacas`,M+3,y+14.5);
-  doc.text(`${records.length} SKUs procesados`,W-M-2,y+14.5,{align:'right'});
+  // Grand total (Todo en negro)
+  needsPage(22);y+=2;
+  rc(M,y,CW,16,[240,240,240]);
+  rc(M,y,CW,16,null,BLACK);
+  sf(7.5,'bold',BLACK);doc.text('RESUMEN FINAL',M+3,y+5);
+  sf(12,'bold',BLACK);doc.text(`$${totalApro.toFixed(2)}`,W-M-2,y+8,{align:'right'});
+  sf(8,'bold',BLACK);doc.text(`${pacasApro} pacas`,W-M-2,y+13,{align:'right'});
+  sf(7.5,'bold',BLACK);doc.text('Total a compensar (aprobados)',M+3,y+10);
   y+=20;
 
   // Footer
