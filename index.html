@@ -1694,10 +1694,10 @@ function generateJsPDF(records, clientName){
   rc(M,y,CW,20,[240,240,240]);
   rc(M,y,CW,20,null,BLACK);
   
-  sf(7.5,'bold',BLACK);doc.text('RESUMEN FINAL',M+3,y+6);
+  sf(7.5,'bold',BLACK);doc.text('RESUMEN FINAL.',M+3,y+6);
   sf(6.5,'normal',BLACK);
-  if(cntA>0) doc.text('✓ Aprobados procesados',M+3,y+11);
-  if(cntR>0) doc.text('✗ Rechazados procesados',M+3,y+15);
+  if(cntA>0) doc.text('✓ Aprobados procesados.',M+3,y+11);
+  if(cntR>0) doc.text('✗ Rechazados procesados.',M+3,y+15);
 
   sf(7.5,'bold',BLACK);doc.text('TOTAL A COMPENSAR (APROBADOS)', W-M-2, y+6, {align:'right'});
   
