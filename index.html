@@ -667,6 +667,10 @@ async function loadAllCounts() {
 async function loadData() {
   if (currentTab === 'ANALISIS') { renderAnalytics(); return; }
   document.getElementById('groupsList').innerHTML = '<div class="loading-row">Cargando registros…</div>';
+  
+  // First, fetch ALL records (lightweight: only id, cliente_nombre, created_at) to compute recon numbers globally
+  const reconMap = await computeReconNumbers();
+  
   let query = sb.from('compensaciones').select('*').order('created_at',{ascending:false});
   if (currentTab === 'PENDIENTE') query = query.eq('estado_proceso','PENDIENTE');
   else query = query.in('estado_proceso',['APROBADO','RECHAZADO']);
@@ -674,25 +678,35 @@ async function loadData() {
   if (error) { alert('Error: '+error.message); return; }
   allRecords = data || [];
   
-  // Assign num_reconocimiento if missing
-  assignReconNumbers();
+  // Apply the globally computed recon numbers
+  allRecords.forEach(r => {
+    r.num_reconocimiento = reconMap[String(r.id)] || 1;
+  });
   
   populateFilters(); applyFilters();
 }
 
-function assignReconNumbers() {
-  // Group by client, sort by created_at, assign sequential numbers
+async function computeReconNumbers() {
+  // Fetch ALL records (just id, cliente_nombre, created_at) to compute correct sequential numbers per client
+  const { data, error } = await sb.from('compensaciones').select('id,cliente_nombre,created_at').order('created_at',{ascending:true});
+  if (error || !data) return {};
+  
+  // Group by client, sorted by created_at ascending
   const byClient = {};
-  allRecords.forEach(r => {
+  data.forEach(r => {
     if (!byClient[r.cliente_nombre]) byClient[r.cliente_nombre] = [];
     byClient[r.cliente_nombre].push(r);
   });
+  
+  // Assign sequential numbers: 1 for the oldest recognition, 2 for the next, etc.
+  const map = {};
   Object.values(byClient).forEach(recs => {
     recs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     recs.forEach((r, i) => {
-      if (!r.num_reconocimiento) r.num_reconocimiento = i + 1;
+      map[String(r.id)] = i + 1;
     });
   });
+  return map;
 }
 
 // ── FILTERS ─────────────────────────────────────────────────
