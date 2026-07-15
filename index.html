@@ -89,7 +89,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 .group-header:hover{background:var(--surface2)}
 .group-avatar{width:40px;height:40px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#fff;flex-shrink:0}
 .group-info{flex:1;min-width:0}
-.group-name{font-weight:700;font-size:.95rem;color:var(--text)}
+.group-name{font-weight:700;font-size:.95rem;color:var(--text);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
 .group-meta{font-size:.75rem;color:var(--text3);margin-top:.1rem}
 .group-summary{display:flex;align-items:center;gap:.6rem;margin-left:auto;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
 .group-total{font-weight:800;font-size:1rem;color:var(--green)}
@@ -98,6 +98,11 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 .group-badge.green{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
 .group-badge.red{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
 .group-badge.mixed{background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border)}
+.badge-recon{font-size:.72rem;font-weight:700;padding:.25rem .65rem;border-radius:20px;background:var(--brand);color:#fff;border:1px solid var(--brand);white-space:nowrap;display:inline-flex;align-items:center;gap:.3rem}
+.badge-recon.recon2{background:var(--purple);border-color:var(--purple)}
+.badge-recon.recon3{background:var(--amber);border-color:var(--amber);color:#fff}
+.badge-recon.recon4{background:var(--blue);border-color:var(--blue);color:#fff}
+.badge-recon.recon5{background:var(--green);border-color:var(--green);color:#fff}
 .group-chevron{width:18px;height:18px;stroke:var(--text3);transition:transform .25s;flex-shrink:0}
 .group-header.open .group-chevron{transform:rotate(180deg)}
 
@@ -124,6 +129,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 .tag-purple{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border)}
 .tag-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border)}
 .tag-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+.tag-recon{background:var(--brand);color:#fff;border:1px solid var(--brand)}
 .sku-amount{font-weight:800;font-size:.95rem;color:var(--green);white-space:nowrap}
 .sku-date{font-size:.72rem;color:var(--text3);white-space:nowrap}
 .sku-arrow svg{width:15px;height:15px;stroke:var(--text3)}
@@ -249,6 +255,17 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 .confirm-icon.revert{background:var(--amber-bg)}
 .confirm-icon.revert svg{stroke:var(--amber)}
 .confirm-icon svg{width:22px;height:22px;fill:none;stroke-width:2}
+
+/* ── PRINT OPTIONS MODAL ── */
+.printopt-modal{background:var(--surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);width:100%;max-width:400px;margin:auto;padding:1.75rem;animation:slideUp .2s ease}
+.printopt-modal h3{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:.3rem}
+.printopt-modal p{font-size:.83rem;color:var(--text2);margin-bottom:1.1rem;line-height:1.5}
+.printopt-options{display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem}
+.printopt-option{display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s;font-size:.85rem;font-weight:600;color:var(--text);background:var(--surface)}
+.printopt-option:hover{border-color:var(--brand);background:var(--surface2)}
+.printopt-option.selected{border-color:var(--brand);background:var(--blue-bg);color:var(--blue)}
+.printopt-option svg{width:18px;height:18px;stroke:currentColor;flex-shrink:0}
+.printopt-actions{display:flex;gap:.75rem;justify-content:flex-end}
 
 /* ── REVERT PASSWORD MODAL ── */
 .revert-modal{background:var(--surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);width:100%;max-width:380px;margin:auto;padding:1.75rem;animation:slideUp .2s ease}
@@ -453,6 +470,31 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
   </div>
 </div>
 
+<!-- PRINT OPTIONS MODAL -->
+<div class="modal-backdrop" id="printOptBackdrop">
+  <div class="printopt-modal">
+    <div class="confirm-icon" style="background:var(--purple-bg);margin-bottom:.9rem">
+      <svg fill="none" stroke="var(--purple)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+    </div>
+    <h3>Opciones de impresión</h3>
+    <p>Selecciona qué registros deseas incluir en la impresión/PDF:</p>
+    <div class="printopt-options">
+      <div class="printopt-option selected" data-opt="all" id="printOptAll">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        Incluir todo (aprobados + rechazados + pendientes)
+      </div>
+      <div class="printopt-option" data-opt="noRech" id="printOptNoRech">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        Solo aprobados y pendientes (excluir rechazados)
+      </div>
+    </div>
+    <div class="printopt-actions">
+      <button class="btn-cancel" id="btnPrintOptCancel">Cancelar</button>
+      <button class="btn-action btn-approve" id="btnPrintOptOk">Continuar</button>
+    </div>
+  </div>
+</div>
+
 <!-- REVERT PASSWORD MODAL -->
 <div class="modal-backdrop" id="revertBackdrop">
   <div class="revert-modal">
@@ -569,7 +611,21 @@ let filteredRecords = [];
 let currentRecord = null;
 let pendingAction = null;
 let revertRecordId = null;
-let isEditing = false; 
+let isEditing = false;
+
+// ── Recognitions numbering ─────────────────────────────────
+function getReconLabel(num) {
+  if (!num || num <= 0) num = 1;
+  const labels = {1:'1er reconocimiento',2:'2do reconocimiento',3:'3er reconocimiento',4:'4to reconocimiento',5:'5to reconocimiento'};
+  return labels[num] || (num + '° reconocimiento');
+}
+function getReconBadgeClass(num) {
+  if (!num || num <= 1) return '';
+  if (num === 2) return 'recon2';
+  if (num === 3) return 'recon3';
+  if (num === 4) return 'recon4';
+  return 'recon5';
+}
 
 // ── AUTH ────────────────────────────────────────────────────
 async function checkUser() {
@@ -617,7 +673,26 @@ async function loadData() {
   const { data, error } = await query;
   if (error) { alert('Error: '+error.message); return; }
   allRecords = data || [];
+  
+  // Assign num_reconocimiento if missing
+  assignReconNumbers();
+  
   populateFilters(); applyFilters();
+}
+
+function assignReconNumbers() {
+  // Group by client, sort by created_at, assign sequential numbers
+  const byClient = {};
+  allRecords.forEach(r => {
+    if (!byClient[r.cliente_nombre]) byClient[r.cliente_nombre] = [];
+    byClient[r.cliente_nombre].push(r);
+  });
+  Object.values(byClient).forEach(recs => {
+    recs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    recs.forEach((r, i) => {
+      if (!r.num_reconocimiento) r.num_reconocimiento = i + 1;
+    });
+  });
 }
 
 // ── FILTERS ─────────────────────────────────────────────────
@@ -672,7 +747,8 @@ document.getElementById('btnClearFilters').addEventListener('click', () => {
 
 // ── STATS ───────────────────────────────────────────────────
 function updateStats() {
-  const clients = new Set(filteredRecords.map(r=>r.cliente_nombre)).size;
+  const clientKeys = new Set(filteredRecords.map(r=>r.cliente_nombre + '|||' + (r.num_reconocimiento||1)));
+  const clientsCnt = clientKeys.size;
   
   let totalCredito = 0;
   let totalPacas = 0;
@@ -686,7 +762,7 @@ function updateStats() {
       }
   });
 
-  document.getElementById('statClients').textContent = clients;
+  document.getElementById('statClients').textContent = clientsCnt;
   document.getElementById('statSkus').textContent    = filteredRecords.length;
   document.getElementById('statTotal').textContent   = '$' + totalCredito.toFixed(2);
   document.getElementById('statAvg').textContent     = totalPacas + ' pacas';
@@ -701,11 +777,20 @@ function renderGroups() {
   }
   const groups={};
   filteredRecords.forEach(r=>{
-    if(!groups[r.cliente_nombre]) groups[r.cliente_nombre]={cliente:r.cliente_nombre,promotor:r.promotor_nombre,items:[]};
-    groups[r.cliente_nombre].items.push(r);
+    const reconNum = r.num_reconocimiento || 1;
+    const groupKey = r.cliente_nombre + '|||' + reconNum;
+    if(!groups[groupKey]) groups[groupKey]={cliente:r.cliente_nombre,promotor:r.promotor_nombre,reconNum:reconNum,items:[]};
+    groups[groupKey].items.push(r);
   });
   gl.innerHTML='';
-  Object.values(groups).forEach(g=>{
+  
+  // Sort groups: first by client name, then by recon number descending (newest first)
+  const sortedGroups = Object.values(groups).sort((a,b) => {
+    if (a.cliente !== b.cliente) return a.cliente.localeCompare(b.cliente);
+    return b.reconNum - a.reconNum;
+  });
+  
+  sortedGroups.forEach(g=>{
     
     let totalCredito = 0;
     let totalCreditoPacas = 0;
@@ -746,6 +831,9 @@ function renderGroups() {
     displayTotalHtml += '</div>';
 
     const initials   = g.cliente.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const reconLabel = getReconLabel(g.reconNum);
+    const reconBadgeClass = getReconBadgeClass(g.reconNum);
+    
     let badgeClass='', badgeLabel='';
     
     if(currentTab==='PENDIENTE'){
@@ -757,14 +845,16 @@ function renderGroups() {
       else if(rechs>0&&apros===0){badgeClass='red';badgeLabel=`${rechs} rechazado${rechs>1?'s':''}`;}
       else{badgeClass='mixed';badgeLabel=`${apros} apr · ${rechs} rec`;}
     }
-    const sid = sanitizeId(g.cliente);
+    const sid = sanitizeId(g.cliente + '_' + g.reconNum);
+    
+    // Pass both clientName and reconNum via data attributes for PDF functions
     const pdfBtns = currentTab==='RESULTADO' ? `
       <div class="group-pdf-btns">
-        <button class="group-btn-pdf print" onclick="event.stopPropagation();printGroupPDF('${sid}')" title="Imprimir">
+        <button class="group-btn-pdf print" onclick="event.stopPropagation();openPrintOptModal('${esc(g.cliente).replace(/'/g,"\\'")}','${g.reconNum}','print')" title="Imprimir">
           <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
           Imprimir
         </button>
-        <button class="group-btn-pdf" onclick="event.stopPropagation();exportGroupPDF('${sid}')" title="Descargar PDF">
+        <button class="group-btn-pdf" onclick="event.stopPropagation();openPrintOptModal('${esc(g.cliente).replace(/'/g,"\\'")}','${g.reconNum}','pdf')" title="Descargar PDF">
           <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           Descargar PDF
         </button>
@@ -774,7 +864,10 @@ function renderGroups() {
     el.innerHTML=`
       <div class="group-header" id="gh-${sid}" onclick="toggleGroup('${sid}')">
         <div class="group-avatar">${initials}</div>
-        <div class="group-info"><div class="group-name">${esc(g.cliente)}</div><div class="group-meta">Vendedor: ${esc(g.promotor)}</div></div>
+        <div class="group-info">
+          <div class="group-name">${esc(g.cliente)} <span class="badge-recon ${reconBadgeClass}">${reconLabel}</span></div>
+          <div class="group-meta">Vendedor: ${esc(g.promotor)}</div>
+        </div>
         <div class="group-summary">
           ${pdfBtns}
           <span class="group-badge ${badgeClass}">${badgeLabel}</span>
@@ -793,6 +886,8 @@ function renderSkuRow(item) {
   const statusTag = st==='PENDIENTE' ? '<span class="sku-status status-pending">Pendiente</span>'
     : st==='APROBADO' ? '<span class="sku-status status-approved">Aprobado</span>'
     : '<span class="sku-status status-rejected">Rechazado</span>';
+  
+  const reconNum = item.num_reconocimiento || 1;
   
   const revertBtn = currentTab==='RESULTADO' ? `
     <button class="group-btn-pdf revert" onclick="event.stopPropagation();openRevertModal(${item.id})" title="Revertir a Pendiente" style="padding:.2rem .5rem;font-size:.68rem">
@@ -819,6 +914,7 @@ function renderSkuRow(item) {
           <span class="tag tag-purple">${esc(item.tipo_cierre)}</span>
           <span class="tag tag-blue">Fac: ${esc(item.numero_factura)}</span>
           <span class="tag tag-amber">${item.pacas_a_reconocer} pacas</span>
+          <span class="tag tag-recon">Rec. #${reconNum}</span>
           ${statusTag}
           ${revertBtn}
         </div>
@@ -847,13 +943,15 @@ function openDetailModal(id) {
   if(!data) return;
   currentRecord=data;
   
+  const reconNum = data.num_reconocimiento || 1;
+  
   // Reset Edit state
   isEditing = false;
   const btnEdit = document.getElementById('btnEditSku');
   btnEdit.className = 'btn-action btn-edit-modal';
   btnEdit.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Editar`;
 
-  document.getElementById('mTitle').textContent=esc(data.producto)+' — '+esc(data.cliente_nombre);
+  document.getElementById('mTitle').textContent=esc(data.producto)+' — '+esc(data.cliente_nombre) + ' · Reconocimiento #' + reconNum;
   document.getElementById('mSubtitle').textContent=`ID ${data.id} · ${new Date(data.created_at).toLocaleString('es-VE')}`;
   const isPending=data.estado_proceso==='PENDIENTE';
   const gi=document.getElementById('mGerencialInput');
@@ -884,6 +982,7 @@ function openDetailModal(id) {
             <div class="info-item"><div class="l">Cliente</div><div class="v">${esc(data.cliente_nombre)}</div></div>
             <div class="info-item"><div class="l">Producto</div><div class="v">${esc(data.producto)}</div></div>
             <div class="info-item"><div class="l">Tipo Cierre</div><div class="v"><span id="val_tipo_cierre" style="display:inline-block; width:100%;">${esc(data.tipo_cierre)}</span>${data.precio_fijo_cliente?' ($'+data.precio_fijo_cliente+')':''}</div></div>
+            <div class="info-item"><div class="l">Reconocimiento</div><div class="v">#${reconNum} — ${getReconLabel(reconNum)}</div></div>
           </div>${obsV}${obsG}
         </div>
         <div class="info-block" style="background:var(--blue-bg);border-color:var(--blue-border);margin-bottom:1rem">
@@ -950,7 +1049,7 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
       }
     });
 
-    // Campo de Tipo de Cierre (Modificado para verse 100% como un menú nativo seleccionable)
+    // Campo de Tipo de Cierre
     const elTipo = document.getElementById('val_tipo_cierre');
     if (elTipo) {
       const currentVal = (currentRecord.tipo_cierre || '').trim().toUpperCase();
@@ -958,14 +1057,13 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
       
       const standardOpts = ['CREDITO', 'PEDIDO', 'REPOSICIÓN DE PRODUCTO'];
       if (currentVal && !standardOpts.includes(currentVal)) {
-          standardOpts.push(currentVal); // Si existe otro valor previo en la BD, lo agrega
+          standardOpts.push(currentVal);
       }
 
       standardOpts.forEach(op => {
           optsHtml += `<option value="${op}" ${currentVal === op ? 'selected' : ''}>${op}</option>`;
       });
 
-      // Se usa un div envolvente y appearance:auto para forzar la UI del sistema operativo (flechas del dropdown)
       elTipo.innerHTML = `
         <select id="input_tipo_cierre" class="obs-input-inline" style="width:100%; padding:0.4rem; font-size:0.85rem; border: 1.5px solid var(--brand); color: #000; background: #fff; border-radius: 6px; cursor: pointer; appearance: auto; -webkit-appearance: menulist;">
             ${optsHtml}
@@ -981,7 +1079,6 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
     btn.innerHTML = 'Guardando...';
     btn.disabled = true;
 
-    // Obtener valores de los inputs numéricos. (Pacas a Int, Precios/Porcentajes a Float)
     const pacas_factura = parseInt(document.getElementById('input_pacas_factura').value, 10) || 0;
     const promo_regalo = parseInt(document.getElementById('input_promo_regalo').value, 10) || 0;
     const pacas_totales = parseInt(document.getElementById('input_pacas_totales').value, 10) || 0;
@@ -993,34 +1090,28 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
     const precio_actual = parseFloat(document.getElementById('input_precio_actual').value) || 0;
     const prontopago_actual_pct = parseFloat(document.getElementById('input_prontopago_actual_pct').value) || 0;
 
-    // Obtener valor de tipo de cierre
     const inputTipo = document.getElementById('input_tipo_cierre');
     const tipo_cierre = inputTipo ? inputTipo.value : currentRecord.tipo_cierre;
 
     // === LÓGICA MATEMÁTICA DE RECÁLCULO ===
     
-    // 1. Precio Neto Final (Factura Anterior)
     let base_anterior = 0;
     if ((pacas_factura + promo_regalo) > 0) {
         base_anterior = (pacas_factura * precio_compra) / (pacas_factura + promo_regalo);
     }
     const precio_anterior = base_anterior * (1 - (prontopago_anterior_pct / 100));
 
-    // 2. Precio Neto Final (Valores Actuales)
     let base_actual = 0;
     if ((pacas_totales + pacas_regaladas) > 0) {
         base_actual = (pacas_totales * precio_actual) / (pacas_totales + pacas_regaladas);
     }
     const precio_final = base_actual * (1 - (prontopago_actual_pct / 100));
 
-    // 3. Diferencia y Compensación Total
     const diferencia_paca = precio_anterior - precio_final;
     const total_compensar = pacas_a_reconocer * diferencia_paca;
     
-    // 4. Equivalente en producto (siempre redondeado hacia abajo)
     const pacas_a_entregar = precio_final > 0 ? Math.floor(total_compensar / precio_final) : 0;
 
-    // Payload de base de datos
     const updates = {
       tipo_cierre,
       pacas_factura,
@@ -1032,7 +1123,6 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
       precio_actual: parseFloat(precio_actual.toFixed(2)),
       prontopago_actual_pct,
       pacas_a_reconocer,
-      // Calculados:
       precio_anterior: parseFloat(precio_anterior.toFixed(2)),
       precio_final: parseFloat(precio_final.toFixed(2)),
       diferencia_paca: parseFloat(diferencia_paca.toFixed(2)),
@@ -1040,7 +1130,6 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
       pacas_a_entregar
     };
 
-    // Actualizar en BD
     const { error } = await sb.from('compensaciones').update(updates).eq('id', currentRecord.id);
 
     if (error) {
@@ -1050,18 +1139,15 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
       return;
     }
 
-    // Actualizar caché de records en el Front
     Object.assign(currentRecord, updates);
     const idx = allRecords.findIndex(r => r.id === currentRecord.id);
     if (idx !== -1) allRecords[idx] = currentRecord;
     const fIdx = filteredRecords.findIndex(r => r.id === currentRecord.id);
     if (fIdx !== -1) filteredRecords[fIdx] = currentRecord;
 
-    // Finalizar guardado
     btn.disabled = false;
     isEditing = false;
     
-    // Recargar vista para ver cálculos finalizados
     openDetailModal(currentRecord.id);
     renderGroups();
     updateStats();
@@ -1077,6 +1163,64 @@ document.getElementById('btnPrintSku').addEventListener('click',()=>{
   w.document.write(document.getElementById('pdfContent').innerHTML);
   w.document.write('</body></html>'); w.document.close(); w.focus();
   setTimeout(()=>w.print(),700);
+});
+
+// ── PRINT OPTIONS MODAL ─────────────────────────────────────
+let printOptTarget = null; // {clientName, reconNum, mode:'print'|'pdf'}
+
+function openPrintOptModal(clientName, reconNum, mode) {
+  printOptTarget = {clientName, reconNum: parseInt(reconNum)||1, mode};
+  document.getElementById('printOptAll').classList.add('selected');
+  document.getElementById('printOptNoRech').classList.remove('selected');
+  document.getElementById('printOptBackdrop').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+document.getElementById('btnPrintOptCancel').addEventListener('click', () => {
+  document.getElementById('printOptBackdrop').classList.remove('open');
+  document.body.style.overflow='';
+  printOptTarget = null;
+});
+document.getElementById('printOptBackdrop').addEventListener('click', e => {
+  if (e.target === document.getElementById('printOptBackdrop')) {
+    document.getElementById('printOptBackdrop').classList.remove('open');
+    document.body.style.overflow='';
+    printOptTarget = null;
+  }
+});
+
+// Toggle option selection
+document.querySelectorAll('.printopt-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.printopt-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+  });
+});
+
+document.getElementById('btnPrintOptOk').addEventListener('click', () => {
+  if (!printOptTarget) return;
+  const includeRechazados = document.getElementById('printOptAll').classList.contains('selected');
+  const {clientName, reconNum, mode} = printOptTarget;
+  
+  let records = allRecords.filter(r => r.cliente_nombre === clientName && (r.num_reconocimiento||1) === reconNum);
+  if (!includeRechazados) {
+    records = records.filter(r => r.estado_proceso !== 'RECHAZADO');
+  }
+  
+  document.getElementById('printOptBackdrop').classList.remove('open');
+  document.body.style.overflow='';
+  printOptTarget = null;
+  
+  if (mode === 'print') {
+    buildPdfContent(records);
+    const w = window.open('','_blank');
+    w.document.write('<html><head><title>Imprimir — '+clientName+'</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"><style>body{font-family:Inter,sans-serif;font-size:12px;padding:2rem;color:#111}'+getPdfStyles()+'@media print{body{padding:0}}</style></head><body>');
+    w.document.write(document.getElementById('pdfContent').innerHTML);
+    w.document.write('</body></html>'); w.document.close(); w.focus();
+    setTimeout(() => w.print(), 700);
+  } else {
+    generateJsPDF(records, clientName);
+  }
 });
 
 // ── APPROVE / REJECT ────────────────────────────────────────
@@ -1124,7 +1268,6 @@ function openRevertModal(id){
 }
 document.getElementById('btnRevertCancel').addEventListener('click',()=>document.getElementById('revertBackdrop').classList.remove('open'));
 document.getElementById('revertBackdrop').addEventListener('click',e=>{if(e.target===document.getElementById('revertBackdrop'))document.getElementById('revertBackdrop').classList.remove('open');});
-// Toggle eye
 document.getElementById('revertEyeToggle').addEventListener('click',()=>{
   const inp=document.getElementById('revertPwdInput');
   const icon=document.getElementById('revertEyeIcon');
@@ -1166,7 +1309,6 @@ function openDeleteModal(id){
 }
 document.getElementById('btnDeleteCancel').addEventListener('click',()=>document.getElementById('deleteBackdrop').classList.remove('open'));
 document.getElementById('deleteBackdrop').addEventListener('click',e=>{if(e.target===document.getElementById('deleteBackdrop'))document.getElementById('deleteBackdrop').classList.remove('open');});
-// Toggle eye
 document.getElementById('deleteEyeToggle').addEventListener('click',()=>{
   const inp=document.getElementById('deletePwdInput');
   const icon=document.getElementById('deleteEyeIcon');
@@ -1231,7 +1373,6 @@ function showLbPhoto(){
 function applyLbTransform(){
   lbImg.style.transform=`scale(${lbScale}) translate(${lbPanX/lbScale}px,${lbPanY/lbScale}px) rotate(${lbRotation}deg)`;
   lbImg.style.transformOrigin='center center';
-  // zoom bar
   const pct=((lbScale-1)/(lbMaxScale-1))*100;
   document.getElementById('lbZoomFill').style.width=pct+'%';
   document.getElementById('lbZoomThumb').style.left=pct+'%';
@@ -1250,21 +1391,18 @@ function updateLbUI(){
   document.getElementById('lbNext').style.display=lbPhotos.length>1?'flex':'none';
 }
 
-// Cierre al hacer click en el fondo
 lbStage.addEventListener('click', e => {
   if (e.target.id === 'lbStage' || e.target.id === 'lbImgWrap') {
     closeLightbox();
   }
 });
 
-// Botón de Girar
 document.getElementById('lbRotate').addEventListener('click', e => {
   e.stopPropagation();
   lbRotation = (lbRotation + 90) % 360;
   applyLbTransform();
 });
 
-// Botón de Descargar
 document.getElementById('lbDownload').addEventListener('click', e => {
   e.stopPropagation();
   const a = document.createElement('a');
@@ -1275,7 +1413,6 @@ document.getElementById('lbDownload').addEventListener('click', e => {
   document.body.removeChild(a);
 });
 
-// Buttons standard
 document.getElementById('lbClose').addEventListener('click',closeLightbox);
 lbBack.addEventListener('click',e=>{if(e.target===lbBack)closeLightbox();});
 document.getElementById('lbPrev').addEventListener('click',e=>{e.stopPropagation();lbIdx=(lbIdx-1+lbPhotos.length)%lbPhotos.length;showLbPhoto();});
@@ -1288,19 +1425,16 @@ document.getElementById('lbFullscreen').addEventListener('click',()=>{
   else document.exitFullscreen();
 });
 
-// Double-click zoom
 lbStage.addEventListener('dblclick',e=>{
   if(lbScale===1){lbZoom(2);}
   else{lbScale=1;lbPanX=0;lbPanY=0;applyLbTransform();}
 });
 
-// Mouse wheel zoom
 lbStage.addEventListener('wheel',e=>{
   e.preventDefault();
   lbZoom(e.deltaY<0?0.4:-0.4);
 },{passive:false});
 
-// Drag to pan
 lbStage.addEventListener('mousedown',e=>{
   if(lbScale>1){
     lbDragging=true; lbDragStartX=e.clientX; lbDragStartY=e.clientY;
@@ -1316,7 +1450,6 @@ document.addEventListener('mousemove',e=>{
 });
 document.addEventListener('mouseup',()=>{lbDragging=false;lbStage.classList.remove('grabbed');});
 
-// Touch zoom (pinch)
 let lbTouches=[], lbInitDist=0, lbInitScale=1;
 lbStage.addEventListener('touchstart',e=>{
   lbTouches=Array.from(e.touches);
@@ -1335,7 +1468,6 @@ lbStage.addEventListener('touchmove',e=>{
   }
 },{passive:false});
 
-// Zoom track click
 document.getElementById('lbZoomTrack').addEventListener('click',e=>{
   const rect=e.currentTarget.getBoundingClientRect();
   const pct=(e.clientX-rect.left)/rect.width;
@@ -1344,7 +1476,6 @@ document.getElementById('lbZoomTrack').addEventListener('click',e=>{
   applyLbTransform();
 });
 
-// Keyboard
 document.addEventListener('keydown',e=>{
   if(!lbBack.classList.contains('open')) return;
   if(e.key==='Escape') closeLightbox();
@@ -1364,7 +1495,7 @@ function getPdfStyles(){
   .pdf-subtitle{font-size:.72rem;color:#6b7280;margin-top:.2rem}
   .pdf-summary-bar{background:#f4f6fb;border:1px solid #e5e8f0;border-radius:8px;padding:.65rem 1rem;margin-bottom:1.25rem;display:flex;gap:2rem;flex-wrap:wrap}
   .pdf-sum-item .sl{font-size:.65rem;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-  .pdf-sum-item .sv{font-size:.9rem;font-weight:900;color:#000 !important;} /* Siempre negro para valores */
+  .pdf-sum-item .sv{font-size:.9rem;font-weight:900;color:#000 !important;}
   .pdf-sku-block{border:1px solid #e5e8f0;border-radius:8px;margin-bottom:1.1rem;overflow:hidden;page-break-inside:avoid}
   .pdf-sku-head{padding:.65rem .9rem;display:flex;justify-content:space-between;align-items:flex-start}
   .pdf-sku-head.approved{background:#ecfdf5;border-left:5px solid #059669}
@@ -1376,14 +1507,14 @@ function getPdfStyles(){
   .estado-badge.aprobado{background:#d1fae5;color:#059669}
   .estado-badge.rechazado{background:#fee2e2;color:#dc2626}
   .estado-badge.pendiente{background:#fef9c3;color:#a16207}
-  .pdf-sku-amt{font-weight:900;font-size:1rem;white-space:nowrap;margin-left:.5rem;color:#000 !important;} /* Siempre negro */
+  .pdf-sku-amt{font-weight:900;font-size:1rem;white-space:nowrap;margin-left:.5rem;color:#000 !important;}
   .pdf-sku-body{padding:.7rem .9rem;background:#fff}
   .pdf-section-label{font-size:.65rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0.5rem 0 .3rem}
   .pdf-kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:.1rem .75rem;margin-bottom:.5rem}
   .pdf-kv{display:flex;justify-content:space-between;padding:.15rem 0;font-size:.73rem;border-bottom:1px dashed #f0f0f0}
   .pdf-kv:last-child{border-bottom:none}
   .pdf-kv .k{color:#6b7280}
-  .pdf-kv .v{font-weight:800; color:#000 !important;} /* Siempre negro */
+  .pdf-kv .v{font-weight:800; color:#000 !important;}
   .pdf-motivo-box{margin:.5rem 0;padding:.5rem .75rem;border-radius:6px;font-size:.75rem}
   .pdf-motivo-box.vendedor{background:#fffbeb;border-left:3px solid #d97706}
   .pdf-motivo-box.gerencia{background:#eff6ff;border-left:3px solid #2563eb}
@@ -1404,13 +1535,13 @@ function getPdfStyles(){
 // ── BUILD PDF CONTENT ────────────────────────────────────────
 function buildPdfContent(records){
   const now=new Date().toLocaleDateString('es-VE',{day:'2-digit',month:'long',year:'numeric'});
-  const clientName=records[0].cliente_nombre;
+  const clientName=records[0]?.cliente_nombre || '';
+  const reconNum = records[0]?.num_reconocimiento || 1;
   
   let totalApro = 0, pacasApro = 0;
   let totalRech = 0, pacasRech = 0;
 
   records.forEach(r => {
-    // AHORA ACUMULAMOS AMBOS INDEPENDIENTEMENTE DEL TIPO DE CIERRE
     if(r.estado_proceso === 'APROBADO') {
       totalApro += (r.total_compensar || 0);
       pacasApro += (r.pacas_a_entregar || 0);
@@ -1435,7 +1566,7 @@ function buildPdfContent(records){
   <div class="pdf-header-bar">
     <div>
       <div class="pdf-title">MarquesCheck — Reporte de Compensaciones</div>
-      <div class="pdf-subtitle">Generado el ${now} · Cliente: <strong>${esc(clientName)}</strong></div>
+      <div class="pdf-subtitle">Generado el ${now} · Cliente: <strong>${esc(clientName)}</strong> · <strong>${getReconLabel(reconNum)}</strong></div>
     </div>
     <div style="text-align:right">
       <div style="font-size:.78rem;color:#6b7280">${records.length} compensación${records.length!==1?'es':''}</div>
@@ -1467,7 +1598,7 @@ function buildPdfContent(records){
             <span class="pdf-sku-title">${i+1}. ${esc(r.producto)}</span>
             <span class="estado-badge ${cls}">${estadoLabel}</span>
           </div>
-          <div class="pdf-sku-meta">Fac. <strong>${esc(r.numero_factura)}</strong> · Cierre: ${esc(r.tipo_cierre)} · Vendedor: ${esc(r.promotor_nombre)}</div>
+          <div class="pdf-sku-meta">Fac. <strong>${esc(r.numero_factura)}</strong> · Cierre: ${esc(r.tipo_cierre)} · Vendedor: ${esc(r.promotor_nombre)} · Reconocimiento #${reconNum}</div>
         </div>
         <span class="pdf-sku-amt">$${(r.total_compensar||0).toFixed(2)} | ${r.pacas_a_entregar} pacas</span>
       </div>
@@ -1499,7 +1630,7 @@ function buildPdfContent(records){
   ${(cntA>0||cntR>0)?`
   <div class="pdf-grand-total">
     <div>
-      <div class="gtl" style="margin-bottom:0.4rem">RESUMEN FINAL · ${esc(clientName)}</div>
+      <div class="gtl" style="margin-bottom:0.4rem">RESUMEN FINAL · ${esc(clientName)} · ${getReconLabel(reconNum)}</div>
       ${cntA>0?`<div class="gtp">✓ Aprobados procesados</div>`:''}
       ${cntR>0?`<div class="gtp">✗ Rechazados procesados</div>`:''}
     </div>
@@ -1522,16 +1653,18 @@ function buildPdfContent(records){
   </div>`;
 }
 
-// ── PDF EXPORT (jsPDF — texto directo, sin renderizado HTML) ─
+// ── PDF EXPORT / PRINT helpers (now using printOpt modal) ─
+// These legacy functions are kept for backward compatibility but now route through the modal
 function exportGroupPDF(groupId){
-  const hdr=document.getElementById('gh-'+groupId); if(!hdr) return;
-  const clientName=hdr.querySelector('.group-name').textContent;
-  const records=allRecords.filter(r=>r.cliente_nombre===clientName);
+  // Legacy: not used directly anymore, print opt modal handles it
+  const parts = groupId.split(/_(.+)/);
+  const clientName = parts[1] || groupId;
+  const records = allRecords.filter(r => r.cliente_nombre === clientName);
   generateJsPDF(records, clientName);
 }
 function printGroupPDF(groupId){
-  const hdr=document.getElementById('gh-'+groupId); if(!hdr) return;
-  const clientName=hdr.querySelector('.group-name').textContent;
+  const parts = groupId.split(/_(.+)/);
+  const clientName = parts[1] || groupId;
   buildPdfContent(allRecords.filter(r=>r.cliente_nombre===clientName));
   const w=window.open('','_blank');
   w.document.write('<html><head><title>Imprimir — '+clientName+'</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"><style>body{font-family:Inter,sans-serif;font-size:12px;padding:2rem;color:#111}'+getPdfStyles()+'@media print{body{padding:0}}</style></head><body>');
@@ -1554,7 +1687,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 });
 
 // ── UTILS ───────────────────────────────────────────────────
-function esc(str){if(!str)return'';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function esc(str){if(!str)return'';return String(str).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');}
 function sanitizeId(str){return str.replace(/[^a-zA-Z0-9]/g,'_');}
 
 // ── jsPDF GENERATOR ─────────────────────────────────────────
@@ -1568,6 +1701,8 @@ function generateJsPDF(records, clientName){
   const NAVY=[26,43,86],GREEN=[5,150,105],RED=[220,38,38],AMBER=[217,119,6],BLUE=[37,99,235];
   const GRAY=[107,114,128],LGRAY=[229,232,240],WHITE=[255,255,255],BLACK=[0,0,0];
 
+  const reconNum = records[0]?.num_reconocimiento || 1;
+
   const sf=(size,style='normal',color=[17,24,39])=>{doc.setFontSize(size);doc.setFont('helvetica',style);doc.setTextColor(...color);};
   const ln=(x1,y1,x2,y2,c=LGRAY,w=.3)=>{doc.setDrawColor(...c);doc.setLineWidth(w);doc.line(x1,y1,x2,y2);};
   const rc=(x,ry,rw,rh,fill,stroke)=>{if(fill){doc.setFillColor(...fill);}if(stroke){doc.setDrawColor(...stroke);}doc.rect(x,ry,rw,rh,fill&&stroke?'FD':fill?'F':stroke?'S':'N');};
@@ -1577,7 +1712,7 @@ function generateJsPDF(records, clientName){
   function pageHeader(){
     rc(0,0,210,9,NAVY);
     sf(7,'bold',WHITE);doc.text('MarquesCheck — Compensaciones',M,6.5);
-    sf(6.5,'normal',[180,200,240]);doc.text(`${clientName} · ${now}`,W-M,6.5,{align:'right'});
+    sf(6.5,'normal',[180,200,240]);doc.text(`${clientName} · ${now} · ${getReconLabel(reconNum)}`,W-M,6.5,{align:'right'});
     y=15;
   }
 
@@ -1585,12 +1720,11 @@ function generateJsPDF(records, clientName){
   rc(0,0,210,38,NAVY);
   sf(20,'bold',WHITE);doc.text('MarquesCheck',M,16);
   sf(9,'normal',[180,200,230]);doc.text('Reporte de Compensaciones',M,23);
-  sf(7.5,'normal',[130,155,200]);doc.text(`Generado el ${now}`,M,29);
+  sf(7.5,'normal',[130,155,200]);doc.text(`Generado el ${now} · ${getReconLabel(reconNum)}`,M,29);
   y=44;
 
   let totalApro = 0, pacasApro = 0, totalRech = 0, pacasRech = 0;
   records.forEach(r => {
-    // AHORA ACUMULAMOS AMBOS INDEPENDIENTEMENTE DEL TIPO DE CIERRE
     if(r.estado_proceso === 'APROBADO') {
       totalApro += (r.total_compensar || 0);
       pacasApro += (r.pacas_a_entregar || 0);
@@ -1612,7 +1746,7 @@ function generateJsPDF(records, clientName){
   sf(12,'bold',BLACK);doc.text(`$${totalApro.toFixed(2)}`,W-M-2,y+12,{align:'right'});
   y+=20;
 
-  // Summary bar (Cantidades en Negro)
+  // Summary bar
   const summCols=[[`$${totalApro.toFixed(2)} / +${pacasApro} pacas`,`${cntA} Aprobados`],[`$${totalRech.toFixed(2)} / ${pacasRech} pacas`,`${cntR} Rechazados`],[`${records.length} SKUs`,`${cntP} pendientes`]];
   const cw2=CW/3;
   summCols.forEach(([val,sub],i)=>{
@@ -1633,18 +1767,15 @@ function generateJsPDF(records, clientName){
     const stL=isA?'APROBADO':isR?'RECHAZADO':'PENDIENTE';
     const bgH=isA?[236,253,245]:isR?[254,242,242]:[255,251,235];
     
-    // Header stripe (Títulos y cantidades en negro)
     rc(M,y,4,9,stC);rc(M+4,y,CW-4,9,bgH);
     sf(9,'bold',BLACK);doc.text(`${idx+1}. ${r.producto}`,M+8,y+6.5);
     sf(8,'bold',BLACK);doc.text(`$${(r.total_compensar||0).toFixed(2)} / ${r.pacas_a_entregar} pacas`,W-M-2,y+6.5,{align:'right'});
     y+=9;
 
-    // Badge + meta
     rc(M,y,CW,5.5,[250,251,253]);
-    sf(6,'normal',GRAY);doc.text(`${stL}  ·  Fac. ${r.numero_factura||'-'}  ·  Cierre: ${r.tipo_cierre||'-'}  ·  Vendedor: ${r.promotor_nombre||'-'}`,M+3,y+4);
+    sf(6,'normal',GRAY);doc.text(`${stL}  ·  Fac. ${r.numero_factura||'-'}  ·  Cierre: ${r.tipo_cierre||'-'}  ·  Vendedor: ${r.promotor_nombre||'-'} · Rec. #${reconNum}`,M+3,y+4);
     y+=5.5;
 
-    // Data rows (Métricas en negro sólido)
     const rows=[
       ['Pacas factura',String(r.pacas_factura||'-'),'Pacas a reconocer',String(r.pacas_a_reconocer||'-')],
       ['Precio anterior (neto)','$'+r.precio_anterior,'Precio actual (neto)','$'+r.precio_final],
@@ -1659,7 +1790,6 @@ function generateJsPDF(records, clientName){
       y+=6;
     });
 
-    // Observations
     if(r.observaciones){
       needsPage(9);
       rc(M,y,CW,8,[255,251,235]);rc(M,y,2.5,8,AMBER);
@@ -1680,7 +1810,6 @@ function generateJsPDF(records, clientName){
       y+=8;
     }
 
-    // Total bar (Doble bloque Crédito y Pacas en Negro)
     rc(M,y,CW,10,[240,240,240]);
     sf(7.5,'bold',BLACK);doc.text('Nota de crédito',M+3,y+4);
     sf(7.5,'bold',BLACK);doc.text(`$${(r.total_compensar||0).toFixed(2)}`,W-M-2,y+4,{align:'right'});
@@ -1689,7 +1818,7 @@ function generateJsPDF(records, clientName){
     y+=10;y+=4;
   });
 
-  // Grand total (Todo en negro y con doble desglose explícito)
+  // Grand total
   needsPage(24);y+=2;
   rc(M,y,CW,20,[240,240,240]);
   rc(M,y,CW,20,null,BLACK);
@@ -1709,7 +1838,6 @@ function generateJsPDF(records, clientName){
   
   y+=24;
 
-  // Footer
   ln(M,y,W-M,y,LGRAY);y+=4;
   sf(6,'normal',GRAY);doc.text(`MarquesCheck · ${now}`,M,y);
   doc.text('Confidencial — Documento generado automáticamente',W-M,y,{align:'right'});
@@ -1729,10 +1857,9 @@ async function renderAnalytics(){
   data.forEach(r=>{
     const e=r.estado_proceso;
     
-    // Para estadisticas generales, sumaremos todo (Dolares) para simplificar la vista, pero filtrado
     const tc = (r.tipo_cierre || '').toUpperCase();
     const isPedido = tc.includes('PEDIDO') || tc.includes('PRODUCTO');
-    const m = isPedido ? 0 : (r.total_compensar||0); // Ignorar pedidos en suma monetaria general
+    const m = isPedido ? 0 : (r.total_compensar||0);
 
     if(e==='APROBADO'){cntA++;totA+=m;}else if(e==='RECHAZADO'){cntR++;totR+=m;}else{cntP++;totP+=m;}
     if(!byProd[r.producto])byProd[r.producto]={name:r.producto,total:0,apro:0,rech:0,monto:0};
