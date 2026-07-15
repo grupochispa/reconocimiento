@@ -485,7 +485,7 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
       </div>
       <div class="printopt-option" data-opt="noRech" id="printOptNoRech">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-        Solo aprobados y pendientes (excluir rechazados)
+        Solo aprobados (excluir rechazados y pendientes)
       </div>
     </div>
     <div class="printopt-actions">
@@ -668,7 +668,6 @@ async function loadData() {
   if (currentTab === 'ANALISIS') { renderAnalytics(); return; }
   document.getElementById('groupsList').innerHTML = '<div class="loading-row">Cargando registros…</div>';
   
-  // First, fetch ALL records (lightweight: only id, cliente_nombre, created_at) to compute recon numbers globally
   const reconMap = await computeReconNumbers();
   
   let query = sb.from('compensaciones').select('*').order('created_at',{ascending:false});
@@ -678,7 +677,6 @@ async function loadData() {
   if (error) { alert('Error: '+error.message); return; }
   allRecords = data || [];
   
-  // Apply the globally computed recon numbers
   allRecords.forEach(r => {
     r.num_reconocimiento = reconMap[String(r.id)] || 1;
   });
@@ -687,23 +685,29 @@ async function loadData() {
 }
 
 async function computeReconNumbers() {
-  // Fetch ALL records (just id, cliente_nombre, created_at) to compute correct sequential numbers per client
+  // Fetch ALL records to compute correct sequential numbers per client, grouped by DAY
   const { data, error } = await sb.from('compensaciones').select('id,cliente_nombre,created_at').order('created_at',{ascending:true});
   if (error || !data) return {};
   
-  // Group by client, sorted by created_at ascending
   const byClient = {};
   data.forEach(r => {
     if (!byClient[r.cliente_nombre]) byClient[r.cliente_nombre] = [];
     byClient[r.cliente_nombre].push(r);
   });
   
-  // Assign sequential numbers: 1 for the oldest recognition, 2 for the next, etc.
+  // Assign sequential numbers BY DAY: same day = same recognition number
   const map = {};
   Object.values(byClient).forEach(recs => {
     recs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-    recs.forEach((r, i) => {
-      map[String(r.id)] = i + 1;
+    let reconNum = 0;
+    let lastDate = null;
+    recs.forEach(r => {
+      const d = new Date(r.created_at).toISOString().slice(0,10); // YYYY-MM-DD
+      if (d !== lastDate) {
+        reconNum++;
+        lastDate = d;
+      }
+      map[String(r.id)] = reconNum;
     });
   });
   return map;
@@ -798,7 +802,6 @@ function renderGroups() {
   });
   gl.innerHTML='';
   
-  // Sort groups: first by client name, then by recon number descending (newest first)
   const sortedGroups = Object.values(groups).sort((a,b) => {
     if (a.cliente !== b.cliente) return a.cliente.localeCompare(b.cliente);
     return b.reconNum - a.reconNum;
@@ -861,7 +864,6 @@ function renderGroups() {
     }
     const sid = sanitizeId(g.cliente + '_' + g.reconNum);
     
-    // Pass both clientName and reconNum via data attributes for PDF functions
     const pdfBtns = currentTab==='RESULTADO' ? `
       <div class="group-pdf-btns">
         <button class="group-btn-pdf print" onclick="event.stopPropagation();openPrintOptModal('${esc(g.cliente).replace(/'/g,"\\'")}','${g.reconNum}','print')" title="Imprimir">
@@ -959,7 +961,6 @@ function openDetailModal(id) {
   
   const reconNum = data.num_reconocimiento || 1;
   
-  // Reset Edit state
   isEditing = false;
   const btnEdit = document.getElementById('btnEditSku');
   btnEdit.className = 'btn-action btn-edit-modal';
@@ -1045,10 +1046,8 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
   const btn = document.getElementById('btnEditSku');
 
   if (!isEditing) {
-    // 1. INICIAR MODO EDICIÓN
     isEditing = true;
     
-    // Nombres de los campos numericos editables
     const fields = [
       'pacas_factura', 'promo_regalo', 'precio_compra', 'prontopago_anterior_pct',
       'pacas_totales', 'pacas_regaladas', 'precio_actual', 'prontopago_actual_pct',
@@ -1063,7 +1062,6 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
       }
     });
 
-    // Campo de Tipo de Cierre
     const elTipo = document.getElementById('val_tipo_cierre');
     if (elTipo) {
       const currentVal = (currentRecord.tipo_cierre || '').trim().toUpperCase();
@@ -1089,7 +1087,6 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
     btn.className = 'btn-action btn-approve';
     
   } else {
-    // 2. GUARDAR CAMBIOS Y RECALCULAR
     btn.innerHTML = 'Guardando...';
     btn.disabled = true;
 
@@ -1107,8 +1104,6 @@ document.getElementById('btnEditSku').addEventListener('click', async () => {
     const inputTipo = document.getElementById('input_tipo_cierre');
     const tipo_cierre = inputTipo ? inputTipo.value : currentRecord.tipo_cierre;
 
-    // === LÓGICA MATEMÁTICA DE RECÁLCULO ===
-    
     let base_anterior = 0;
     if ((pacas_factura + promo_regalo) > 0) {
         base_anterior = (pacas_factura * precio_compra) / (pacas_factura + promo_regalo);
@@ -1180,7 +1175,7 @@ document.getElementById('btnPrintSku').addEventListener('click',()=>{
 });
 
 // ── PRINT OPTIONS MODAL ─────────────────────────────────────
-let printOptTarget = null; // {clientName, reconNum, mode:'print'|'pdf'}
+let printOptTarget = null;
 
 function openPrintOptModal(clientName, reconNum, mode) {
   printOptTarget = {clientName, reconNum: parseInt(reconNum)||1, mode};
@@ -1203,7 +1198,6 @@ document.getElementById('printOptBackdrop').addEventListener('click', e => {
   }
 });
 
-// Toggle option selection
 document.querySelectorAll('.printopt-option').forEach(opt => {
   opt.addEventListener('click', () => {
     document.querySelectorAll('.printopt-option').forEach(o => o.classList.remove('selected'));
@@ -1213,12 +1207,13 @@ document.querySelectorAll('.printopt-option').forEach(opt => {
 
 document.getElementById('btnPrintOptOk').addEventListener('click', () => {
   if (!printOptTarget) return;
-  const includeRechazados = document.getElementById('printOptAll').classList.contains('selected');
+  const includeAll = document.getElementById('printOptAll').classList.contains('selected');
   const {clientName, reconNum, mode} = printOptTarget;
   
   let records = allRecords.filter(r => r.cliente_nombre === clientName && (r.num_reconocimiento||1) === reconNum);
-  if (!includeRechazados) {
-    records = records.filter(r => r.estado_proceso !== 'RECHAZADO');
+  if (!includeAll) {
+    // "Solo aprobados" — exclude both RECHAZADO and PENDIENTE
+    records = records.filter(r => r.estado_proceso === 'APROBADO');
   }
   
   document.getElementById('printOptBackdrop').classList.remove('open');
@@ -1667,10 +1662,7 @@ function buildPdfContent(records){
   </div>`;
 }
 
-// ── PDF EXPORT / PRINT helpers (now using printOpt modal) ─
-// These legacy functions are kept for backward compatibility but now route through the modal
 function exportGroupPDF(groupId){
-  // Legacy: not used directly anymore, print opt modal handles it
   const parts = groupId.split(/_(.+)/);
   const clientName = parts[1] || groupId;
   const records = allRecords.filter(r => r.cliente_nombre === clientName);
@@ -1730,7 +1722,6 @@ function generateJsPDF(records, clientName){
     y=15;
   }
 
-  // Cover
   rc(0,0,210,38,NAVY);
   sf(20,'bold',WHITE);doc.text('MarquesCheck',M,16);
   sf(9,'normal',[180,200,230]);doc.text('Reporte de Compensaciones',M,23);
@@ -1752,7 +1743,6 @@ function generateJsPDF(records, clientName){
   const cntR=records.filter(r=>r.estado_proceso==='RECHAZADO').length;
   const cntP=records.filter(r=>r.estado_proceso==='PENDIENTE').length;
 
-  // Client block
   rc(M,y,CW,16,[240,244,251]);rc(M,y,CW,16,null,LGRAY);
   sf(6.5,'bold',GRAY);doc.text('CLIENTE',M+4,y+5);
   sf(11,'bold',NAVY);doc.text(clientName,M+4,y+12);
@@ -1760,7 +1750,6 @@ function generateJsPDF(records, clientName){
   sf(12,'bold',BLACK);doc.text(`$${totalApro.toFixed(2)}`,W-M-2,y+12,{align:'right'});
   y+=20;
 
-  // Summary bar
   const summCols=[[`$${totalApro.toFixed(2)} / +${pacasApro} pacas`,`${cntA} Aprobados`],[`$${totalRech.toFixed(2)} / ${pacasRech} pacas`,`${cntR} Rechazados`],[`${records.length} SKUs`,`${cntP} pendientes`]];
   const cw2=CW/3;
   summCols.forEach(([val,sub],i)=>{
@@ -1771,7 +1760,6 @@ function generateJsPDF(records, clientName){
   y+=16;
   ln(M,y,W-M,y,NAVY,.4);y+=5;
 
-  // SKU blocks
   const sorted=[...records.filter(r=>r.estado_proceso==='APROBADO'),...records.filter(r=>r.estado_proceso==='RECHAZADO'),...records.filter(r=>r.estado_proceso==='PENDIENTE')];
   sorted.forEach((r,idx)=>{
     needsPage(55);
@@ -1832,7 +1820,6 @@ function generateJsPDF(records, clientName){
     y+=10;y+=4;
   });
 
-  // Grand total
   needsPage(24);y+=2;
   rc(M,y,CW,20,[240,240,240]);
   rc(M,y,CW,20,null,BLACK);
