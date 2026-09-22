@@ -59,10 +59,12 @@ input[type=number]{-moz-appearance:textfield}
 .admin-tabs{display:flex;gap:6px;margin-bottom:14px}
 .admin-tab{flex:1;padding:10px 8px;font-size:12px;font-weight:700;border-radius:12px;border:1.5px solid #e5e7eb;background:#fff;color:#6b7280;cursor:pointer}
 .admin-tab.activo{border-color:#1a2b56;background:#1a2b56;color:#fff}
-.admin-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:8px}
+.admin-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:8px;flex-wrap:wrap}
 .admin-row.inactive{opacity:.55}
-.admin-row .admin-name{flex:1;font-weight:700;font-size:14px;color:#111827}
+.admin-row-main{flex:1;min-width:140px}
+.admin-row .admin-name{font-weight:700;font-size:14px;color:#111827}
 .admin-row .admin-meta{font-size:11px;color:#6b7280}
+.admin-row-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .admin-btn{padding:6px 10px;font-size:11px;font-weight:700;border-radius:8px;border:1px solid #e5e7eb;background:#f9fafb;cursor:pointer}
 .admin-btn:hover{background:#f3f4f6}
 .admin-btn.danger{color:#b91c1c;border-color:#fecaca;background:#fef2f2}

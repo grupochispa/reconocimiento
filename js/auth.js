@@ -1,4 +1,4 @@
-/* Dashboard auth – Supabase Auth (email) + optional mc_dashboard_users (username) */
+/* Dashboard auth – Supabase Auth (email) + mc_dashboard_users (username/email) */
 (function (global) {
   const SESSION_KEY = 'mc_dash_session_v1';
   const USERS_TABLE = 'mc_dashboard_users';
@@ -46,6 +46,17 @@
       return hex === expect;
     }
     return false;
+  }
+
+  function formatCreated(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('es-VE', { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (e) {
+      return '';
+    }
   }
 
   async function countUsers() {
@@ -96,6 +107,11 @@
     if (error) throw new Error(error.message);
   }
 
+  async function deleteUser(id) {
+    const { error } = await MC.sb.from(USERS_TABLE).delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
   async function loginLocal(username, password) {
     const uname = String(username || '').trim().toLowerCase();
     const { data, error } = await MC.sb
@@ -140,9 +156,6 @@
       if (localOk) return { ok: true, mode: 'local' };
     } catch (e) {
       // table may not exist yet — fall through to Supabase Auth
-      if (!/relation|does not exist|42P01|PGRST/i.test(e.message || '')) {
-        // still try supabase below
-      }
     }
 
     if (id.indexOf('@') !== -1) {
@@ -151,7 +164,6 @@
       throw new Error(r.message || 'Credenciales inválidas');
     }
 
-    // Try supabase with username@... not applicable — fail
     throw new Error('Usuario o contraseña incorrectos');
   }
 
@@ -203,7 +215,9 @@
     listUsers: listUsers,
     upsertUser: upsertUser,
     setUserActivo: setUserActivo,
+    deleteUser: deleteUser,
     hashPassword: hashPassword,
-    bootstrapAdmin: bootstrapAdmin
+    bootstrapAdmin: bootstrapAdmin,
+    formatCreated: formatCreated
   };
 })(window);

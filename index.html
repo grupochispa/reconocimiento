@@ -183,10 +183,14 @@
         <button type="button" class="admin-tab" data-tab="productos">Productos</button>
         <button type="button" class="admin-tab" data-tab="materiales">Materiales</button>
       </div>
+      <p id="adminUsersNote" class="text-xs text-gray-500 mb-3">
+        Gestiona usuarios del panel (<code>mc_dashboard_users</code>): crear, cambiar contraseña, desactivar o eliminar.
+        El login por correo de Supabase Auth sigue como respaldo si el usuario no está en esta lista.
+      </p>
       <div id="adminForm" class="admin-form hidden">
         <h3 id="adminFormTitle" class="text-sm font-extrabold text-gray-800 mb-3">Agregar</h3>
         <input type="hidden" id="adminEditId" value="">
-        <label class="field-label">Nombre / Usuario</label>
+        <label class="field-label" id="adminNombreLabel">Nombre / Usuario</label>
         <input type="text" id="adminNombre" class="input-base" style="border-color:#e5e7eb" placeholder="Nombre">
         <div id="adminExtraFields"></div>
         <div class="flex gap-2 mt-4">
@@ -194,7 +198,7 @@
           <button type="button" id="btnAdminCancel" class="px-4 py-3 rounded-xl border border-gray-200 font-bold text-sm text-gray-600">Cancelar</button>
         </div>
       </div>
-      <button type="button" id="btnAdminAdd" class="w-full mb-3 py-3 border-2 border-dashed border-brand-300 text-brand-700 font-bold text-sm rounded-xl">+ Agregar</button>
+      <button type="button" id="btnAdminAdd" class="w-full mb-3 py-3 border-2 border-dashed border-brand-300 text-brand-700 font-bold text-sm rounded-xl">+ Agregar usuario / catálogo</button>
       <div id="adminList"></div>
     </section>
   </main>

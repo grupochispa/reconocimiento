@@ -1,4 +1,4 @@
-/* Admin: catalogos mc_* + usuarios del dashboard */
+/* Admin: catalogos mc_* + usuarios del dashboard (mc_dashboard_users) */
 (function (global) {
   let currentTab = 'usuarios';
   let usersCache = [];
@@ -13,24 +13,32 @@
 
   function renderList() {
     const list = document.getElementById('adminList');
+    const note = document.getElementById('adminUsersNote');
+    if (note) note.classList.toggle('hidden', currentTab !== 'usuarios');
     if (!list) return;
     const rows = rowsFor(currentTab);
     if (!rows.length) {
-      list.innerHTML = '<p class="text-sm text-gray-500 py-6 text-center">Sin registros</p>';
+      list.innerHTML = currentTab === 'usuarios'
+        ? '<p class="text-sm text-gray-500 py-6 text-center">Sin usuarios del panel. Usa <strong>+ Agregar</strong> o el bootstrap en login si la tabla está vacía.</p>'
+        : '<p class="text-sm text-gray-500 py-6 text-center">Sin registros</p>';
       return;
     }
     if (currentTab === 'usuarios') {
       list.innerHTML = rows.map(function (r) {
         const inactive = r.activo === false;
+        const created = MC.auth.formatCreated(r.created_at);
+        const meta = (inactive ? 'inactivo' : 'activo') + (created ? ' · creado ' + created : '') + ' · panel';
         return (
           '<div class="admin-row' + (inactive ? ' inactive' : '') + '" data-id="' + r.id + '">' +
-          '<div><div class="admin-name">' + MC.escapeHtml(r.username) + '</div>' +
-          '<div class="admin-meta">' + (inactive ? 'inactivo' : 'activo') + '</div></div>' +
-          '<button type="button" class="admin-btn" data-act="edit">Editar</button>' +
+          '<div class="admin-row-main"><div class="admin-name">' + MC.escapeHtml(r.username) + '</div>' +
+          '<div class="admin-meta">' + MC.escapeHtml(meta) + '</div></div>' +
+          '<div class="admin-row-actions">' +
+          '<button type="button" class="admin-btn" data-act="edit" title="Editar / cambiar contraseña">Editar</button>' +
           (inactive
             ? '<button type="button" class="admin-btn ok" data-act="activate">Activar</button>'
             : '<button type="button" class="admin-btn danger" data-act="deactivate">Desactivar</button>') +
-          '</div>'
+          '<button type="button" class="admin-btn danger" data-act="delete" title="Eliminar permanentemente">Eliminar</button>' +
+          '</div></div>'
         );
       }).join('');
       return;
@@ -44,14 +52,15 @@
           : '';
       return (
         '<div class="admin-row' + (inactive ? ' inactive' : '') + '" data-id="' + r.id + '">' +
-        '<div><div class="admin-name">' + MC.escapeHtml(r.nombre) + '</div>' +
+        '<div class="admin-row-main"><div class="admin-name">' + MC.escapeHtml(r.nombre) + '</div>' +
         (meta ? '<div class="admin-meta">' + MC.escapeHtml(meta) + (inactive ? ' · inactivo' : '') + '</div>' : (inactive ? '<div class="admin-meta">inactivo</div>' : '')) +
         '</div>' +
+        '<div class="admin-row-actions">' +
         '<button type="button" class="admin-btn" data-act="edit">Editar</button>' +
         (inactive
           ? '<button type="button" class="admin-btn ok" data-act="activate">Activar</button>'
           : '<button type="button" class="admin-btn danger" data-act="deactivate">Desactivar</button>') +
-        '</div>'
+        '</div></div>'
       );
     }).join('');
   }
@@ -64,8 +73,12 @@
     title.textContent = mode === 'edit' ? 'Editar' : 'Agregar';
     if (currentTab === 'usuarios') {
       document.getElementById('adminNombre').value = row ? row.username : '';
-      document.getElementById('adminNombre').placeholder = 'usuario';
-      extra.innerHTML = '<div class="mt-3"><label class="field-label">Contraseña' + (mode === 'edit' ? ' <span class="field-sub">(dejar vacío para no cambiar)</span>' : '') + '</label><input type="password" id="adminPassword" class="input-base" style="border-color:#e5e7eb" autocomplete="new-password"></div>';
+      document.getElementById('adminNombre').placeholder = 'usuario o correo@empresa.com';
+      extra.innerHTML =
+        '<div class="mt-3"><label class="field-label">Contraseña' +
+        (mode === 'edit' ? ' <span class="field-sub">(dejar vacío para no cambiar)</span>' : '') +
+        '</label><input type="password" id="adminPassword" class="input-base" style="border-color:#e5e7eb" autocomplete="new-password" minlength="4"></div>' +
+        '<p class="text-[11px] text-gray-400 mt-2">Se guarda con hash (sha256$salt$hex). Nunca en texto plano.</p>';
     } else {
       document.getElementById('adminNombre').value = row ? row.nombre : '';
       document.getElementById('adminNombre').placeholder = 'Nombre';
@@ -90,6 +103,8 @@
     if (currentTab === 'usuarios') {
       const username = document.getElementById('adminNombre').value.trim();
       const password = (document.getElementById('adminPassword') || {}).value || '';
+      if (!username) return MC.showToast('Usuario requerido.', 'error');
+      if (!id && !password) return MC.showToast('Contraseña requerida.', 'error');
       MC.setLoading(true, 'Guardando usuario…');
       try {
         await MC.auth.upsertUser({ id: id || null, username: username, password: password || null, activo: true });
@@ -163,6 +178,21 @@
     }
   }
 
+  async function removeUser(id, username) {
+    if (!confirm('¿Eliminar permanentemente a "' + username + '"? Preferible desactivar si solo deja de aplicar.')) return;
+    MC.setLoading(true, 'Eliminando…');
+    try {
+      await MC.auth.deleteUser(id);
+      usersCache = await MC.auth.listUsers();
+      renderList();
+      MC.setLoading(false);
+      MC.showToast('Usuario eliminado.', 'success');
+    } catch (e) {
+      MC.setLoading(false);
+      MC.showToast(e.message, 'error');
+    }
+  }
+
   function initAdmin() {
     document.querySelectorAll('.admin-tab').forEach(function (btn) {
       btn.addEventListener('click', async function () {
@@ -194,6 +224,7 @@
         if (btn.dataset.act === 'edit') showForm('edit', row);
         if (btn.dataset.act === 'deactivate') setActivo(id, false);
         if (btn.dataset.act === 'activate') setActivo(id, true);
+        if (btn.dataset.act === 'delete' && currentTab === 'usuarios') removeUser(id, row.username);
       });
     }
   }

@@ -18,6 +18,7 @@ alter table public.mc_dashboard_users enable row level security;
 drop policy if exists "mc_dash_users_select" on public.mc_dashboard_users;
 drop policy if exists "mc_dash_users_insert" on public.mc_dashboard_users;
 drop policy if exists "mc_dash_users_update" on public.mc_dashboard_users;
+drop policy if exists "mc_dash_users_delete" on public.mc_dashboard_users;
 
 create policy "mc_dash_users_select" on public.mc_dashboard_users
   for select to anon, authenticated using (true);
@@ -25,3 +26,5 @@ create policy "mc_dash_users_insert" on public.mc_dashboard_users
   for insert to anon, authenticated with check (true);
 create policy "mc_dash_users_update" on public.mc_dashboard_users
   for update to anon, authenticated using (true) with check (true);
+create policy "mc_dash_users_delete" on public.mc_dashboard_users
+  for delete to anon, authenticated using (true);
