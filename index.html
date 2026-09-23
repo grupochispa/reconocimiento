@@ -6,14 +6,14 @@
   <title>MarquesCheck – Panel (protegido)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          fontFamily: { sans: ['DM Sans', 'sans-serif'] },
           colors: { brand: { 50:'#f0f9ff',100:'#e0f2fe',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e' } }
         }
       }
@@ -23,7 +23,7 @@
 </head>
 <body class="bg-brand-50 text-brand-900 font-sans antialiased min-h-screen relative z-0">
 
-<!-- LOGIN (shown until authenticated; no dashboard queries run before this) -->
+<!-- LOGIN -->
 <div id="loginWrap">
   <div class="login-card">
     <h1>MarquesCheck <span>Panel</span></h1>
@@ -61,10 +61,11 @@
   </div>
 </div>
 
-<!-- APP (hidden until login) -->
+<!-- APP -->
 <div id="appWrap">
   <header class="dash-header">
     <div class="flex items-center gap-3">
+      <button type="button" id="btnSidebarToggle" class="sidebar-toggle" aria-label="Menú">☰</button>
       <div class="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden">
         <img id="headerLogo" alt="Gran Marqués" class="w-full h-full object-contain">
       </div>
@@ -76,36 +77,56 @@
     </div>
   </header>
 
-  <nav class="mc-nav" aria-label="Secciones">
-    <button type="button" class="mc-nav-btn activo" data-view="resumen">Resumen</button>
-    <button type="button" class="mc-nav-btn" data-view="admin">Admin</button>
-  </nav>
+  <div class="app-shell">
+    <aside id="appSidebar" class="app-sidebar" aria-label="Navegación">
+      <p class="sidebar-section">Dashboards</p>
+      <button type="button" class="sidebar-link activo" data-view="evidencias">Evidencias POP</button>
+      <button type="button" class="sidebar-link" data-view="reconocimientos">Reconocimientos</button>
+      <button type="button" class="sidebar-link" data-view="zonas">Zonas</button>
+      <p class="sidebar-section">Administración</p>
+      <button type="button" class="sidebar-link" data-view="admin" data-admin-tab="usuarios">Usuarios</button>
+      <button type="button" class="sidebar-link" data-view="admin" data-admin-tab="vendedores">Vendedores</button>
+      <button type="button" class="sidebar-link" data-view="admin" data-admin-tab="zonas">Asignar zonas</button>
+      <button type="button" class="sidebar-link" data-view="admin" data-admin-tab="productos">Productos</button>
+      <button type="button" class="sidebar-link" data-view="admin" data-admin-tab="materiales">Materiales</button>
+      <a class="sidebar-link sidebar-ext" href="gestion.html">Gestión avanzada ↗</a>
+    </aside>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
 
-  <main class="dash-main">
+    <main class="dash-main">
 
-    <!-- RESUMEN -->
-    <section id="view-resumen" class="view-panel activo" data-view="resumen">
-      <div class="mb-4 flex items-start justify-between gap-3">
-        <div>
-          <h1 class="text-2xl font-extrabold tracking-tight">Resumen</h1>
-          <p class="text-gray-600 text-sm mt-1">Dashboards de evidencias POP y reconocimientos.</p>
-          <p id="evStatus" class="text-[11px] text-gray-400 mt-0.5"></p>
+      <!-- EVIDENCIAS -->
+      <section id="view-evidencias" class="view-panel activo" data-view="evidencias">
+        <div class="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <h1 class="text-2xl font-extrabold tracking-tight">Evidencias POP</h1>
+            <p class="text-gray-600 text-sm mt-1">Visitas, materiales y fotos por vendedor y zona.</p>
+            <p id="evStatus" class="text-[11px] text-gray-400 mt-0.5"></p>
+          </div>
+          <button type="button" id="btnRefreshEv" class="shrink-0 px-3 py-2 text-xs font-bold rounded-xl bg-white border border-gray-200 text-brand-700">Actualizar</button>
         </div>
-        <button type="button" id="btnRefreshResumen" class="shrink-0 px-3 py-2 text-xs font-bold rounded-xl bg-white border border-gray-200 text-brand-700">Actualizar</button>
-      </div>
 
-      <div class="resumen-dash-tabs mb-4">
-        <button type="button" class="resumen-dash-btn activo" data-dash="evidencias">Evidencias</button>
-        <button type="button" class="resumen-dash-btn" data-dash="reconocimientos">Reconocimientos</button>
-      </div>
+        <div class="date-range-bar mb-4">
+          <label class="field-label mb-0">Desde</label>
+          <input type="date" id="evDateFrom" class="input-base" style="border-color:#e5e7eb">
+          <label class="field-label mb-0">Hasta</label>
+          <input type="date" id="evDateTo" class="input-base" style="border-color:#e5e7eb">
+          <button type="button" class="date-preset" data-ev-preset="7">7d</button>
+          <button type="button" class="date-preset" data-ev-preset="30">30d</button>
+          <button type="button" class="date-preset" data-ev-preset="all">Todo</button>
+        </div>
 
-      <div id="dashEvidencias">
-        <div class="ev-stats-grid mb-4">
+        <div class="ev-stats-grid ev-stats-grid--wide mb-4">
           <div class="ev-stat"><p class="ev-stat-label">Visitas</p><p id="evStatVisitas" class="ev-stat-val">—</p></div>
           <div class="ev-stat"><p class="ev-stat-label">Vendedores</p><p id="evStatVendedores" class="ev-stat-val">—</p></div>
           <div class="ev-stat"><p class="ev-stat-label">Materiales</p><p id="evStatMateriales" class="ev-stat-val">—</p></div>
           <div class="ev-stat"><p class="ev-stat-label">Fotos</p><p id="evStatFotos" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">Prom. mat/visita</p><p id="evStatPromMat" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">% con foto</p><p id="evStatPctFoto" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">Zonas activas</p><p id="evStatZonas" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">Hoy</p><p id="evStatHoy" class="ev-stat-val">—</p></div>
         </div>
+
         <div class="bg-white rounded-2xl border border-gray-100 p-4 mb-4 shadow-sm">
           <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Clientes por estado</p>
           <div id="evDistribucion"></div>
@@ -117,10 +138,7 @@
         <div class="bg-white rounded-2xl border border-gray-100 p-3 mb-3 shadow-sm space-y-2">
           <input id="evSearch" type="search" placeholder="Buscar vendedor o cliente…" class="input-base" style="border-color:#e5e7eb">
           <div class="grid grid-cols-2 gap-2">
-            <select id="evFilterFecha" class="input-base" style="border-color:#e5e7eb">
-              <option value="todo" selected>Toda la data</option>
-              <option value="hoy">Solo hoy</option>
-            </select>
+            <select id="evFilterZona" class="input-base" style="border-color:#e5e7eb"><option value="">Todas las zonas</option></select>
             <select id="evSortBy" class="input-base" style="border-color:#e5e7eb">
               <option value="reciente">Más reciente</option>
               <option value="antiguo">Más antiguo</option>
@@ -138,18 +156,39 @@
         </div>
         <div id="evGallery"></div>
         <div id="evPagination" class="mt-3"></div>
-      </div>
+      </section>
 
-      <div id="dashReconocimientos" class="hidden">
+      <!-- RECONOCIMIENTOS -->
+      <section id="view-reconocimientos" class="view-panel" data-view="reconocimientos">
+        <div class="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <h1 class="text-2xl font-extrabold tracking-tight">Reconocimientos</h1>
+            <p class="text-gray-600 text-sm mt-1">Pendientes, créditos y pedidos por vendedor.</p>
+          </div>
+          <button type="button" id="btnRefreshRec" class="shrink-0 px-3 py-2 text-xs font-bold rounded-xl bg-white border border-gray-200 text-brand-700">Actualizar</button>
+        </div>
+
+        <div class="date-range-bar mb-4">
+          <label class="field-label mb-0">Desde</label>
+          <input type="date" id="recDateFrom" class="input-base" style="border-color:#e5e7eb">
+          <label class="field-label mb-0">Hasta</label>
+          <input type="date" id="recDateTo" class="input-base" style="border-color:#e5e7eb">
+          <button type="button" class="date-preset" data-rec-preset="7">7d</button>
+          <button type="button" class="date-preset" data-rec-preset="30">30d</button>
+          <button type="button" class="date-preset" data-rec-preset="all">Todo</button>
+        </div>
+
         <div class="rec-tabs mb-3">
           <button type="button" class="rec-tab-btn activo" data-rectab="PENDIENTE">Pendientes <span id="recCntPend" class="rec-tab-count">0</span></button>
           <button type="button" class="rec-tab-btn" data-rectab="RESULTADO">Resultados <span id="recCntResult" class="rec-tab-count">0</span></button>
         </div>
-        <div class="ev-stats-grid mb-4">
+        <div class="ev-stats-grid ev-stats-grid--wide mb-4">
           <div class="ev-stat"><p class="ev-stat-label">Clientes</p><p id="recStatClients" class="ev-stat-val">0</p></div>
           <div class="ev-stat"><p class="ev-stat-label">SKUs</p><p id="recStatSkus" class="ev-stat-val">0</p></div>
           <div class="ev-stat"><p class="ev-stat-label">Crédito $</p><p id="recStatCredito" class="ev-stat-val text-emerald-700">$0</p></div>
           <div class="ev-stat"><p class="ev-stat-label">Pedido</p><p id="recStatPacas" class="ev-stat-val text-blue-700">0</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">Tasa aprobación</p><p id="recStatAprob" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">Ticket prom.</p><p id="recStatTicket" class="ev-stat-val">—</p></div>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-3 mb-3 shadow-sm space-y-2">
           <input id="recSearch" type="search" placeholder="Buscar cliente, vendedor o producto…" class="input-base" style="border-color:#e5e7eb">
@@ -159,8 +198,9 @@
               <option value="PEDIDO">Solo Pedidos</option>
               <option value="CREDITO">Solo Créditos</option>
             </select>
+            <select id="recFilterZona" class="input-base" style="border-color:#e5e7eb"><option value="">Todas las zonas</option></select>
             <select id="recFilterPromotor" class="input-base" style="border-color:#e5e7eb"><option value="">Todos los vendedores</option></select>
-            <select id="recFilterProducto" class="input-base col-span-2" style="border-color:#e5e7eb"><option value="">Todos los productos</option></select>
+            <select id="recFilterProducto" class="input-base" style="border-color:#e5e7eb"><option value="">Todos los productos</option></select>
           </div>
           <div class="flex justify-end">
             <button type="button" id="recClearFilters" class="text-xs font-bold text-brand-700">Limpiar</button>
@@ -168,40 +208,54 @@
         </div>
         <div id="recGroups"></div>
         <p class="text-xs text-gray-400 mt-4 text-center">Gestión avanzada (aprobar/rechazar): <a class="text-brand-700 font-bold underline" href="gestion.html">abrir gestión</a></p>
-      </div>
-    </section>
+      </section>
 
-    <!-- ADMIN -->
-    <section id="view-admin" class="view-panel" data-view="admin">
-      <div class="mb-4">
-        <h1 class="text-2xl font-extrabold tracking-tight">Admin</h1>
-        <p class="text-gray-600 text-sm mt-1">Usuarios del panel y catálogos (vendedores, productos, materiales).</p>
-      </div>
-      <div class="admin-tabs">
-        <button type="button" class="admin-tab activo" data-tab="usuarios">Usuarios</button>
-        <button type="button" class="admin-tab" data-tab="vendedores">Vendedores</button>
-        <button type="button" class="admin-tab" data-tab="productos">Productos</button>
-        <button type="button" class="admin-tab" data-tab="materiales">Materiales</button>
-      </div>
-      <p id="adminUsersNote" class="text-xs text-gray-500 mb-3">
-        Gestiona usuarios del panel (<code>mc_dashboard_users</code>): crear, cambiar contraseña, desactivar o eliminar.
-        El login por correo de Supabase Auth sigue como respaldo si el usuario no está en esta lista.
-      </p>
-      <div id="adminForm" class="admin-form hidden">
-        <h3 id="adminFormTitle" class="text-sm font-extrabold text-gray-800 mb-3">Agregar</h3>
-        <input type="hidden" id="adminEditId" value="">
-        <label class="field-label" id="adminNombreLabel">Nombre / Usuario</label>
-        <input type="text" id="adminNombre" class="input-base" style="border-color:#e5e7eb" placeholder="Nombre">
-        <div id="adminExtraFields"></div>
-        <div class="flex gap-2 mt-4">
-          <button type="button" id="btnAdminSave" class="flex-1 py-3 rounded-xl bg-brand-600 text-white font-bold text-sm">Guardar</button>
-          <button type="button" id="btnAdminCancel" class="px-4 py-3 rounded-xl border border-gray-200 font-bold text-sm text-gray-600">Cancelar</button>
+      <!-- ZONAS (lectura) -->
+      <section id="view-zonas" class="view-panel" data-view="zonas">
+        <div class="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <h1 class="text-2xl font-extrabold tracking-tight">Zonas</h1>
+            <p class="text-gray-600 text-sm mt-1">Ejecutivos de ventas por región (worksheet comercial).</p>
+          </div>
+          <button type="button" id="btnRefreshZonas" class="shrink-0 px-3 py-2 text-xs font-bold rounded-xl bg-white border border-gray-200 text-brand-700">Actualizar</button>
         </div>
-      </div>
-      <button type="button" id="btnAdminAdd" class="w-full mb-3 py-3 border-2 border-dashed border-brand-300 text-brand-700 font-bold text-sm rounded-xl">+ Agregar usuario / catálogo</button>
-      <div id="adminList"></div>
-    </section>
-  </main>
+        <div id="zonasBoard"></div>
+        <p class="text-xs text-gray-400 mt-4 text-center">Para asignar, rotar o quitar: <button type="button" class="text-brand-700 font-bold underline" id="btnGotoAssignZonas">Admin → Asignar zonas</button></p>
+      </section>
+
+      <!-- ADMIN -->
+      <section id="view-admin" class="view-panel" data-view="admin">
+        <div class="mb-4">
+          <h1 class="text-2xl font-extrabold tracking-tight">Admin</h1>
+          <p class="text-gray-600 text-sm mt-1">Usuarios del panel, catálogos y asignación de zonas.</p>
+        </div>
+        <div class="admin-tabs">
+          <button type="button" class="admin-tab activo" data-tab="usuarios">Usuarios</button>
+          <button type="button" class="admin-tab" data-tab="vendedores">Vendedores</button>
+          <button type="button" class="admin-tab" data-tab="zonas">Zonas</button>
+          <button type="button" class="admin-tab" data-tab="productos">Productos</button>
+          <button type="button" class="admin-tab" data-tab="materiales">Materiales</button>
+        </div>
+        <p id="adminUsersNote" class="text-xs text-gray-500 mb-3">
+          Gestiona usuarios del panel (<code>mc_dashboard_users</code>): crear, cambiar contraseña, desactivar o eliminar.
+          El login por correo de Supabase Auth sigue como respaldo.
+        </p>
+        <div id="adminForm" class="admin-form hidden">
+          <h3 id="adminFormTitle" class="text-sm font-extrabold text-gray-800 mb-3">Agregar</h3>
+          <input type="hidden" id="adminEditId" value="">
+          <label class="field-label" id="adminNombreLabel">Nombre / Usuario</label>
+          <input type="text" id="adminNombre" class="input-base" style="border-color:#e5e7eb" placeholder="Nombre">
+          <div id="adminExtraFields"></div>
+          <div class="flex gap-2 mt-4">
+            <button type="button" id="btnAdminSave" class="flex-1 py-3 rounded-xl bg-brand-600 text-white font-bold text-sm">Guardar</button>
+            <button type="button" id="btnAdminCancel" class="px-4 py-3 rounded-xl border border-gray-200 font-bold text-sm text-gray-600">Cancelar</button>
+          </div>
+        </div>
+        <button type="button" id="btnAdminAdd" class="w-full mb-3 py-3 border-2 border-dashed border-brand-300 text-brand-700 font-bold text-sm rounded-xl">+ Agregar usuario</button>
+        <div id="adminList"></div>
+      </section>
+    </main>
+  </div>
 </div>
 
 <div id="loadingModal" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[999]">
@@ -224,6 +278,7 @@
 <script src="js/config.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/catalog.js"></script>
+<script src="js/zones.js"></script>
 <script src="js/resumen.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/app.js"></script>

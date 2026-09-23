@@ -1,11 +1,10 @@
-﻿/* MarquesCheck ÔÇô Resumen: Evidencias POP + Reconocimientos dashboards */
+﻿/* MarquesCheck – Evidencias + Reconocimientos + board de zonas */
 (function (global) {
   const PAGE = 1000;
   const GALL_PAGE = 24;
   const COLS_VISITAS =
     'id,fecha_creacion,promotor_nombre,cliente_nombre,estado,materiales_entregados,fotos_urls,foto_url';
 
-  let dash = 'evidencias';
   let visitasAll = [];
   let visitasFiltered = [];
   let gallPage = 1;
@@ -53,8 +52,7 @@
     let h = 0;
     const s = String(name || '');
     for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    const hue = h % 360;
-    return 'hsl(' + hue + ' 55% 42%)';
+    return 'hsl(' + (h % 360) + ' 55% 42%)';
   }
 
   function isPedido(r) {
@@ -71,7 +69,47 @@
       4: '4to reconocimiento',
       5: '5to reconocimiento'
     };
-    return labels[n] || n + '┬░ reconocimiento';
+    return labels[n] || n + '° reconocimiento';
+  }
+
+  function dayKey(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return String(iso).slice(0, 10);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function inDateRange(iso, fromEl, toEl) {
+    const key = dayKey(iso);
+    if (!key) return true;
+    const from = (fromEl && fromEl.value) || '';
+    const to = (toEl && toEl.value) || '';
+    if (from && key < from) return false;
+    if (to && key > to) return false;
+    return true;
+  }
+
+  function setPreset(fromId, toId, days) {
+    const from = document.getElementById(fromId);
+    const to = document.getElementById(toId);
+    if (!from || !to) return;
+    if (days === 'all') {
+      from.value = '';
+      to.value = '';
+      return;
+    }
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - (Number(days) - 1));
+    to.value = end.toISOString().slice(0, 10);
+    from.value = start.toISOString().slice(0, 10);
+  }
+
+  function vendorInZonaFilter(vendorName, zonaId) {
+    if (!zonaId) return true;
+    if (!MC.zones) return true;
+    const z = MC.zones.zonaForVendorName(vendorName);
+    return z && String(z.id) === String(zonaId);
   }
 
   async function fetchAll(table, orderCol, ascending, columns) {
@@ -105,19 +143,6 @@
     return all;
   }
 
-  function setDash(name) {
-    dash = name;
-    document.querySelectorAll('.resumen-dash-btn').forEach(function (b) {
-      b.classList.toggle('activo', b.dataset.dash === name);
-    });
-    const ev = document.getElementById('dashEvidencias');
-    const rec = document.getElementById('dashReconocimientos');
-    if (ev) ev.classList.toggle('hidden', name !== 'evidencias');
-    if (rec) rec.classList.toggle('hidden', name !== 'reconocimientos');
-    if (name === 'evidencias') renderEvidencias();
-    else loadReconocimientos();
-  }
-
   function fillSelect(el, values, allLabel, selected) {
     if (!el) return;
     const cur = selected != null ? selected : el.value;
@@ -127,11 +152,13 @@
       '</option>' +
       values
         .map(function (v) {
+          const val = typeof v === 'object' ? v.value : v;
+          const label = typeof v === 'object' ? v.label : v;
           return (
             '<option value="' +
-            MC.escapeHtml(v) +
+            MC.escapeHtml(val) +
             '">' +
-            MC.escapeHtml(v) +
+            MC.escapeHtml(label) +
             '</option>'
           );
         })
@@ -139,68 +166,58 @@
     if (cur) el.value = cur;
   }
 
+  function fillZonaSelects() {
+    const opts =
+      MC.zones && MC.zones.activeZonas
+        ? MC.zones.activeZonas().map(function (z) {
+            return { value: z.id, label: z.nombre };
+          })
+        : [];
+    fillSelect(document.getElementById('evFilterZona'), opts, 'Todas las zonas');
+    fillSelect(document.getElementById('recFilterZona'), opts, 'Todas las zonas');
+  }
+
   function populateEvFilters() {
     const estados = Array.from(
-      new Set(
-        visitasAll
-          .map(function (r) {
-            return r.estado;
-          })
-          .filter(Boolean)
-      )
-    ).sort(function (a, b) {
-      return a.localeCompare(b, 'es');
-    });
+      new Set(visitasAll.map(function (r) { return r.estado; }).filter(Boolean))
+    ).sort(function (a, b) { return a.localeCompare(b, 'es'); });
     const vendors =
       MC.catalog && MC.catalog.activeVendedores
-        ? MC.catalog.activeVendedores().map(function (v) {
-            return v.nombre;
-          })
+        ? MC.catalog.activeVendedores().map(function (v) { return v.nombre; })
         : Array.from(
-            new Set(
-              visitasAll
-                .map(function (r) {
-                  return r.promotor_nombre;
-                })
-                .filter(Boolean)
-            )
+            new Set(visitasAll.map(function (r) { return r.promotor_nombre; }).filter(Boolean))
           ).sort();
     const mats =
       MC.catalog && MC.catalog.activeMateriales
-        ? MC.catalog.activeMateriales().map(function (m) {
-            return m.nombre;
-          })
+        ? MC.catalog.activeMateriales().map(function (m) { return m.nombre; })
         : [];
     fillSelect(document.getElementById('evFilterEstado'), estados, 'Todos los estados');
     fillSelect(document.getElementById('evFilterVendedor'), vendors, 'Todos los vendedores');
     fillSelect(document.getElementById('evFilterMaterial'), mats, 'Todos los materiales');
+    fillZonaSelects();
   }
 
   function applyEvFilters() {
-    const q = (document.getElementById('evSearch') || {}).value || '';
-    const qn = q.toLowerCase().trim();
+    const q = ((document.getElementById('evSearch') || {}).value || '').toLowerCase().trim();
     const ven = (document.getElementById('evFilterVendedor') || {}).value || '';
     const est = (document.getElementById('evFilterEstado') || {}).value || '';
     const mat = (document.getElementById('evFilterMaterial') || {}).value || '';
-    const fec = (document.getElementById('evFilterFecha') || {}).value || 'todo';
+    const zona = (document.getElementById('evFilterZona') || {}).value || '';
     const srt = (document.getElementById('evSortBy') || {}).value || 'reciente';
-    const hoy = new Date().toLocaleDateString('en-CA');
+    const fromEl = document.getElementById('evDateFrom');
+    const toEl = document.getElementById('evDateTo');
 
     visitasFiltered = visitasAll.filter(function (r) {
       const okQ =
-        !qn ||
-        String(r.promotor_nombre || '')
-          .toLowerCase()
-          .indexOf(qn) !== -1 ||
-        String(r.cliente_nombre || '')
-          .toLowerCase()
-          .indexOf(qn) !== -1;
+        !q ||
+        String(r.promotor_nombre || '').toLowerCase().indexOf(q) !== -1 ||
+        String(r.cliente_nombre || '').toLowerCase().indexOf(q) !== -1;
       const okV = !ven || r.promotor_nombre === ven;
       const okE = !est || r.estado === est;
       const okM = !mat || (r.materiales_entregados || []).indexOf(mat) !== -1;
-      let okF = true;
-      if (fec === 'hoy') okF = r.fecha_creacion && String(r.fecha_creacion).indexOf(hoy) === 0;
-      return okQ && okV && okE && okM && okF;
+      const okZ = vendorInZonaFilter(r.promotor_nombre, zona);
+      const okF = inDateRange(r.fecha_creacion, fromEl, toEl);
+      return okQ && okV && okE && okM && okZ && okF;
     });
 
     visitasFiltered.sort(function (a, b) {
@@ -222,19 +239,15 @@
         ' encontrado' +
         (visitasFiltered.length !== 1 ? 's' : '');
     }
-    renderEvStats(visitasFiltered.length ? visitasFiltered : visitasAll);
-    renderEvDistribucion(visitasAll);
-    renderEvRanking(visitasAll);
+    renderEvStats(visitasFiltered);
+    renderEvDistribucion(visitasFiltered);
+    renderEvRanking(visitasFiltered);
     renderEvGallery(false);
   }
 
   function renderEvStats(data) {
     const uniqVen = new Set(
-      data
-        .map(function (r) {
-          return r.promotor_nombre;
-        })
-        .filter(Boolean)
+      data.map(function (r) { return r.promotor_nombre; }).filter(Boolean)
     ).size;
     const totalMat = data.reduce(function (s, r) {
       return s + (r.materiales_entregados || []).length;
@@ -242,6 +255,19 @@
     const totalFot = data.reduce(function (s, r) {
       return s + getPhotos(r).length;
     }, 0);
+    const withFoto = data.filter(function (r) {
+      return getPhotos(r).length > 0;
+    }).length;
+    const hoy = new Date().toISOString().slice(0, 10);
+    const hoyCount = data.filter(function (r) {
+      return dayKey(r.fecha_creacion) === hoy;
+    }).length;
+    const zonasSet = new Set();
+    data.forEach(function (r) {
+      if (!MC.zones) return;
+      const z = MC.zones.zonaForVendorName(r.promotor_nombre);
+      if (z) zonasSet.add(z.id);
+    });
     const set = function (id, val) {
       const el = document.getElementById(id);
       if (el) el.textContent = val;
@@ -250,6 +276,10 @@
     set('evStatVendedores', uniqVen);
     set('evStatMateriales', totalMat);
     set('evStatFotos', totalFot);
+    set('evStatPromMat', data.length ? (totalMat / data.length).toFixed(1) : '0');
+    set('evStatPctFoto', data.length ? Math.round((withFoto / data.length) * 100) + '%' : '—');
+    set('evStatZonas', zonasSet.size || '—');
+    set('evStatHoy', hoyCount);
   }
 
   function renderEvDistribucion(data) {
@@ -261,39 +291,23 @@
       counts[e] = (counts[e] || 0) + 1;
     });
     const sorted = Object.keys(counts)
-      .map(function (k) {
-        return [k, counts[k]];
-      })
-      .sort(function (a, b) {
-        return b[1] - a[1];
-      });
+      .map(function (k) { return [k, counts[k]]; })
+      .sort(function (a, b) { return b[1] - a[1]; });
     if (!sorted.length) {
-      el.innerHTML = '<p class="text-sm text-gray-400">Sin datos.</p>';
+      el.innerHTML = '<p class="text-sm text-gray-400">Sin datos en el rango.</p>';
       return;
     }
     const max = sorted[0][1] || 1;
-    const total = sorted.reduce(function (s, x) {
-      return s + x[1];
-    }, 0);
+    const total = sorted.reduce(function (s, x) { return s + x[1]; }, 0);
     el.innerHTML = sorted
       .map(function (pair) {
-        const estado = pair[0];
-        const count = pair[1];
-        const pct = Math.round((count / max) * 100);
-        const pctT = total ? Math.round((count / total) * 100) : 0;
+        const pct = Math.round((pair[1] / max) * 100);
+        const pctT = total ? Math.round((pair[1] / total) * 100) : 0;
         return (
           '<div class="ev-bar-row">' +
-          '<span class="ev-bar-label">' +
-          MC.escapeHtml(estado) +
-          '</span>' +
-          '<div class="ev-bar-track"><div class="ev-bar-fill" style="width:' +
-          pct +
-          '%"></div></div>' +
-          '<span class="ev-bar-count" title="' +
-          pctT +
-          '%">' +
-          count +
-          '</span></div>'
+          '<span class="ev-bar-label">' + MC.escapeHtml(pair[0]) + '</span>' +
+          '<div class="ev-bar-track"><div class="ev-bar-fill" style="width:' + pct + '%"></div></div>' +
+          '<span class="ev-bar-count" title="' + pctT + '%">' + pair[1] + '</span></div>'
         );
       })
       .join('');
@@ -311,9 +325,7 @@
       map[k].fotos += getPhotos(r).length;
     });
     const ranking = Object.keys(map)
-      .map(function (k) {
-        return map[k];
-      })
+      .map(function (k) { return map[k]; })
       .sort(function (a, b) {
         return b.visitas - a.visitas || b.materiales - a.materiales;
       });
@@ -327,29 +339,20 @@
         const pos = i + 1;
         const prom = v.visitas ? (v.materiales / v.visitas).toFixed(1) : '0.0';
         const init = v.nombre.slice(0, 2).toUpperCase();
-        const bg = nameColor(v.nombre);
-        const medal = pos === 1 ? '­ƒÑç' : pos === 2 ? '­ƒÑê' : pos === 3 ? '­ƒÑë' : pos;
+        const z = MC.zones ? MC.zones.zonaForVendorName(v.nombre) : null;
+        const medal = pos <= 3 ? String(pos) : String(pos);
         return (
           '<div class="ev-rank-row">' +
-          '<span class="ev-rank-pos">' +
-          medal +
-          '</span>' +
-          '<div class="ev-rank-avatar" style="background:' +
-          bg +
-          '">' +
+          '<span class="ev-rank-pos">' + medal + '</span>' +
+          '<div class="ev-rank-avatar" style="background:' + nameColor(v.nombre) + '">' +
           MC.escapeHtml(init) +
           '</div>' +
           '<div class="ev-rank-info"><p class="ev-rank-name">' +
           MC.escapeHtml(v.nombre) +
           '</p><p class="ev-rank-meta">' +
-          v.visitas +
-          ' clientes ┬À ' +
-          v.materiales +
-          ' mat ┬À prom ' +
-          prom +
-          ' ┬À ' +
-          v.fotos +
-          ' fotos</p></div></div>'
+          (z ? MC.escapeHtml(z.nombre) + ' · ' : '') +
+          v.visitas + ' visitas · ' + v.materiales + ' mat · prom ' + prom +
+          ' · ' + v.fotos + ' fotos</p></div></div>'
         );
       })
       .join('');
@@ -381,48 +384,34 @@
       .map(function (r) {
         const fotos = getPhotos(r);
         const mats = r.materiales_entregados || [];
-        const init = String(r.promotor_nombre || '?')
-          .slice(0, 2)
-          .toUpperCase();
+        const init = String(r.promotor_nombre || '?').slice(0, 2).toUpperCase();
+        const z = MC.zones ? MC.zones.zonaForVendorName(r.promotor_nombre) : null;
         const thumbs = fotos
           .slice(0, 6)
           .map(function (u) {
             return (
-              '<a href="' +
-              MC.escapeHtml(u) +
-              '" target="_blank" rel="noopener" class="thumb-link"><img src="' +
-              MC.escapeHtml(u) +
-              '" alt="evidencia" loading="lazy"></a>'
+              '<a href="' + MC.escapeHtml(u) + '" target="_blank" rel="noopener" class="thumb-link">' +
+              '<img src="' + MC.escapeHtml(u) + '" alt="evidencia" loading="lazy"></a>'
             );
           })
           .join('');
         return (
           '<article class="visita-card">' +
           '<div class="flex items-center gap-3 mb-3">' +
-          '<div class="ev-rank-avatar" style="background:' +
-          nameColor(r.promotor_nombre) +
-          '">' +
-          MC.escapeHtml(init) +
-          '</div>' +
+          '<div class="ev-rank-avatar" style="background:' + nameColor(r.promotor_nombre) + '">' +
+          MC.escapeHtml(init) + '</div>' +
           '<div class="min-w-0 flex-1"><p class="font-bold text-sm truncate">' +
-          MC.escapeHtml(r.promotor_nombre || 'ÔÇö') +
-          '</p><p class="text-xs text-gray-500">' +
-          fmtDate(r.fecha_creacion) +
-          '</p></div>' +
-          (r.estado
-            ? '<span class="badge-visita">' + MC.escapeHtml(r.estado) + '</span>'
-            : '') +
+          MC.escapeHtml(r.promotor_nombre || '—') +
+          (z ? ' <span class="text-[10px] font-bold text-brand-700">· ' + MC.escapeHtml(z.nombre) + '</span>' : '') +
+          '</p><p class="text-xs text-gray-500">' + fmtDate(r.fecha_creacion) + '</p></div>' +
+          (r.estado ? '<span class="badge-visita">' + MC.escapeHtml(r.estado) + '</span>' : '') +
           '</div>' +
           '<p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Cliente</p>' +
           '<h4 class="text-base font-extrabold text-gray-900 mb-2">' +
-          MC.escapeHtml(r.cliente_nombre || 'Cliente') +
-          '</h4>' +
-          '<div class="flex flex-wrap gap-1.5 mb-3">' +
-          chipsHtml(mats) +
-          '</div>' +
+          MC.escapeHtml(r.cliente_nombre || 'Cliente') + '</h4>' +
+          '<div class="flex flex-wrap gap-1.5 mb-3">' + chipsHtml(mats) + '</div>' +
           '<p class="text-[11px] font-bold text-brand-700 uppercase tracking-wide mb-1">Evidencias (' +
-          fotos.length +
-          ')</p>' +
+          fotos.length + ')</p>' +
           (fotos.length
             ? '<div class="grid grid-cols-3 gap-2">' + thumbs + '</div>'
             : '<p class="text-xs text-gray-400">Sin fotos</p>') +
@@ -437,9 +426,8 @@
     if (pag) {
       if (end < visitasFiltered.length) {
         pag.innerHTML =
-          '<button type="button" id="evLoadMore" class="w-full py-3 rounded-xl bg-white border border-gray-200 text-brand-700 text-sm font-bold">Mostrar m├ís (' +
-          (visitasFiltered.length - end) +
-          ' restantes)</button>';
+          '<button type="button" id="evLoadMore" class="w-full py-3 rounded-xl bg-white border border-gray-200 text-brand-700 text-sm font-bold">Mostrar más (' +
+          (visitasFiltered.length - end) + ' restantes)</button>';
         const btn = document.getElementById('evLoadMore');
         if (btn) {
           btn.addEventListener('click', function () {
@@ -460,8 +448,11 @@
 
   async function loadEvidencias() {
     const status = document.getElementById('evStatus');
-    if (status) status.textContent = 'Cargando evidenciasÔÇª';
+    if (status) status.textContent = 'Cargando evidencias…';
     try {
+      if (MC.zones) {
+        try { await MC.zones.load(false); } catch (e) { /* optional */ }
+      }
       visitasAll = await fetchAll('sorteo_registros', 'fecha_creacion', false, COLS_VISITAS);
       if (status) {
         status.textContent =
@@ -474,8 +465,7 @@
       if (grid) {
         grid.innerHTML =
           '<div class="py-8 text-center text-sm text-red-600">' +
-          MC.escapeHtml(err.message) +
-          '</div>';
+          MC.escapeHtml(err.message) + '</div>';
       }
       if (status) status.textContent = 'Error al cargar';
     }
@@ -513,8 +503,11 @@
 
   async function loadReconocimientos() {
     const list = document.getElementById('recGroups');
-    if (list) list.innerHTML = '<div class="py-8 text-center text-sm text-gray-500">CargandoÔÇª</div>';
+    if (list) list.innerHTML = '<div class="py-8 text-center text-sm text-gray-500">Cargando…</div>';
     try {
+      if (MC.zones) {
+        try { await MC.zones.load(false); } catch (e) { /* optional */ }
+      }
       reconMap = await computeReconNumbers();
       let query = MC.sb.from('compensaciones').select('*').order('created_at', { ascending: false });
       if (compsTab === 'PENDIENTE') query = query.eq('estado_proceso', 'PENDIENTE');
@@ -532,8 +525,7 @@
       if (list) {
         list.innerHTML =
           '<div class="py-8 text-center text-sm text-red-600">' +
-          MC.escapeHtml(err.message) +
-          '</div>';
+          MC.escapeHtml(err.message) + '</div>';
       }
     }
   }
@@ -552,25 +544,14 @@
 
   function populateRecFilters() {
     const promotores = Array.from(
-      new Set(
-        compsAll
-          .map(function (r) {
-            return r.promotor_nombre;
-          })
-          .filter(Boolean)
-      )
+      new Set(compsAll.map(function (r) { return r.promotor_nombre; }).filter(Boolean))
     ).sort();
     const productos = Array.from(
-      new Set(
-        compsAll
-          .map(function (r) {
-            return r.producto;
-          })
-          .filter(Boolean)
-      )
+      new Set(compsAll.map(function (r) { return r.producto; }).filter(Boolean))
     ).sort();
     fillSelect(document.getElementById('recFilterPromotor'), promotores, 'Todos los vendedores');
     fillSelect(document.getElementById('recFilterProducto'), productos, 'Todos los productos');
+    fillZonaSelects();
   }
 
   function applyRecFilters() {
@@ -578,6 +559,9 @@
     const prom = (document.getElementById('recFilterPromotor') || {}).value || '';
     const prod = (document.getElementById('recFilterProducto') || {}).value || '';
     const tipo = (document.getElementById('recFilterTipo') || {}).value || '';
+    const zona = (document.getElementById('recFilterZona') || {}).value || '';
+    const fromEl = document.getElementById('recDateFrom');
+    const toEl = document.getElementById('recDateTo');
 
     compsFiltered = compsAll.filter(function (r) {
       let matchTipo = true;
@@ -588,7 +572,9 @@
         [r.cliente_nombre, r.promotor_nombre, r.producto, r.numero_factura].some(function (v) {
           return v && String(v).toLowerCase().indexOf(q) !== -1;
         });
-      return matchQ && (!prom || r.promotor_nombre === prom) && (!prod || r.producto === prod) && matchTipo;
+      const matchZ = vendorInZonaFilter(r.promotor_nombre, zona);
+      const matchF = inDateRange(r.created_at, fromEl, toEl);
+      return matchQ && (!prom || r.promotor_nombre === prom) && (!prod || r.producto === prod) && matchTipo && matchZ && matchF;
     });
     updateRecStats();
     renderRecGroups();
@@ -602,14 +588,21 @@
     );
     let totalCredito = 0;
     let totalPacas = 0;
-    compsFiltered
-      .filter(function (r) {
-        return r.estado_proceso === 'APROBADO' || r.estado_proceso === 'PENDIENTE';
-      })
-      .forEach(function (r) {
+    let apro = 0;
+    let rech = 0;
+    let creditosCount = 0;
+    compsFiltered.forEach(function (r) {
+      if (r.estado_proceso === 'APROBADO') apro++;
+      if (r.estado_proceso === 'RECHAZADO') rech++;
+      if (r.estado_proceso === 'APROBADO' || r.estado_proceso === 'PENDIENTE') {
         if (isPedido(r)) totalPacas += r.pacas_a_entregar || 0;
-        else totalCredito += r.total_compensar || 0;
-      });
+        else {
+          totalCredito += r.total_compensar || 0;
+          creditosCount++;
+        }
+      }
+    });
+    const decided = apro + rech;
     const set = function (id, val) {
       const el = document.getElementById(id);
       if (el) el.textContent = val;
@@ -618,6 +611,11 @@
     set('recStatSkus', compsFiltered.length);
     set('recStatCredito', '$' + totalCredito.toFixed(2));
     set('recStatPacas', totalPacas + ' pacas');
+    set('recStatAprob', decided ? Math.round((apro / decided) * 100) + '%' : '—');
+    set(
+      'recStatTicket',
+      creditosCount ? '$' + (totalCredito / creditosCount).toFixed(2) : '—'
+    );
   }
 
   function renderRecGroups() {
@@ -625,7 +623,7 @@
     if (!gl) return;
     if (!compsFiltered.length) {
       gl.innerHTML =
-        '<div class="py-10 text-center text-sm text-gray-500">No hay registros en esta categor├¡a.</div>';
+        '<div class="py-10 text-center text-sm text-gray-500">No hay registros en esta categoría / rango.</div>';
       return;
     }
     const groups = {};
@@ -643,9 +641,7 @@
       groups[key].items.push(r);
     });
     const sorted = Object.keys(groups)
-      .map(function (k) {
-        return groups[k];
-      })
+      .map(function (k) { return groups[k]; })
       .sort(function (a, b) {
         if (a.cliente !== b.cliente) return String(a.cliente || '').localeCompare(String(b.cliente || ''), 'es');
         return b.reconNum - a.reconNum;
@@ -666,12 +662,8 @@
         let badge = g.items.length + ' SKU';
         let badgeCls = '';
         if (compsTab !== 'PENDIENTE') {
-          const apros = g.items.filter(function (i) {
-            return i.estado_proceso === 'APROBADO';
-          }).length;
-          const rechs = g.items.filter(function (i) {
-            return i.estado_proceso === 'RECHAZADO';
-          }).length;
+          const apros = g.items.filter(function (i) { return i.estado_proceso === 'APROBADO'; }).length;
+          const rechs = g.items.filter(function (i) { return i.estado_proceso === 'RECHAZADO'; }).length;
           if (apros && !rechs) {
             badgeCls = 'ok';
             badge = apros + ' aprobado' + (apros > 1 ? 's' : '');
@@ -679,18 +671,15 @@
             badgeCls = 'danger';
             badge = rechs + ' rechazado' + (rechs > 1 ? 's' : '');
           } else {
-            badge = apros + ' apr ┬À ' + rechs + ' rec';
+            badge = apros + ' apr · ' + rechs + ' rec';
           }
         }
         const totals =
-          (totalCredito
-            ? '<span class="rec-total-credito">$' + totalCredito.toFixed(2) + '</span>'
-            : '') +
-          (totalPedido
-            ? '<span class="rec-total-pedido">+' + totalPedido + ' pacas</span>'
-            : '') +
+          (totalCredito ? '<span class="rec-total-credito">$' + totalCredito.toFixed(2) + '</span>' : '') +
+          (totalPedido ? '<span class="rec-total-pedido">+' + totalPedido + ' pacas</span>' : '') +
           (!totalCredito && !totalPedido ? '<span class="text-xs text-gray-400">$0</span>' : '');
 
+        const z = MC.zones ? MC.zones.zonaForVendorName(g.promotor) : null;
         const itemsHtml = g.items
           .map(function (item) {
             const st = item.estado_proceso;
@@ -704,11 +693,8 @@
               .slice(0, 3)
               .map(function (u) {
                 return (
-                  '<a href="' +
-                  MC.escapeHtml(u) +
-                  '" target="_blank" rel="noopener" class="thumb-link"><img src="' +
-                  MC.escapeHtml(u) +
-                  '" alt="inventario" loading="lazy"></a>'
+                  '<a href="' + MC.escapeHtml(u) + '" target="_blank" rel="noopener" class="thumb-link">' +
+                  '<img src="' + MC.escapeHtml(u) + '" alt="inventario" loading="lazy"></a>'
                 );
               })
               .join('');
@@ -718,27 +704,14 @@
               '<div><p class="font-bold text-sm text-gray-900">' +
               MC.escapeHtml(item.producto || 'Producto') +
               '</p><p class="text-[11px] text-gray-500">Factura ' +
-              MC.escapeHtml(item.numero_factura || 'ÔÇö') +
-              ' ┬À ' +
-              fmtDay(item.created_at) +
-              '</p></div>' +
-              '<span class="rec-status ' +
-              stCls +
-              '">' +
-              MC.escapeHtml(st || 'ÔÇö') +
-              '</span></div>' +
+              MC.escapeHtml(item.numero_factura || '—') +
+              ' · ' + fmtDay(item.created_at) + '</p></div>' +
+              '<span class="rec-status ' + stCls + '">' + MC.escapeHtml(st || '—') + '</span></div>' +
               '<div class="flex items-center justify-between text-sm mb-2">' +
-              '<span class="font-extrabold ' +
-              (isPedido(item) ? 'text-blue-700' : 'text-emerald-700') +
-              '">' +
-              primary +
-              '</span>' +
-              '<span class="text-xs text-gray-500">' +
-              MC.escapeHtml(item.tipo_cierre || 'ÔÇö') +
-              '</span></div>' +
-              (fotos.length
-                ? '<div class="grid grid-cols-3 gap-2">' + thumbs + '</div>'
-                : '') +
+              '<span class="font-extrabold ' + (isPedido(item) ? 'text-blue-700' : 'text-emerald-700') + '">' +
+              primary + '</span>' +
+              '<span class="text-xs text-gray-500">' + MC.escapeHtml(item.tipo_cierre || '—') + '</span></div>' +
+              (fotos.length ? '<div class="grid grid-cols-3 gap-2">' + thumbs + '</div>' : '') +
               '</div>'
             );
           })
@@ -746,28 +719,18 @@
 
         return (
           '<div class="rec-group" data-open="0">' +
-          '<button type="button" class="rec-group-head" data-gi="' +
-          gi +
-          '">' +
+          '<button type="button" class="rec-group-head" data-gi="' + gi + '">' +
           '<div class="min-w-0 flex-1 text-left"><p class="font-extrabold text-sm text-gray-900 truncate">' +
           MC.escapeHtml(g.cliente || 'Cliente') +
           '</p><p class="text-[11px] text-gray-500">' +
-          MC.escapeHtml(g.promotor || 'ÔÇö') +
-          ' ┬À ' +
-          reconLabel(g.reconNum) +
+          MC.escapeHtml(g.promotor || '—') +
+          (z ? ' · ' + MC.escapeHtml(z.nombre) : '') +
+          ' · ' + reconLabel(g.reconNum) +
           '</p></div>' +
           '<div class="flex flex-col items-end gap-1 shrink-0">' +
-          '<span class="rec-badge ' +
-          badgeCls +
-          '">' +
-          badge +
-          '</span>' +
-          '<div class="flex gap-2 items-center">' +
-          totals +
-          '</div></div></button>' +
-          '<div class="rec-group-body hidden">' +
-          itemsHtml +
-          '</div></div>'
+          '<span class="rec-badge ' + badgeCls + '">' + badge + '</span>' +
+          '<div class="flex gap-2 items-center">' + totals + '</div></div></button>' +
+          '<div class="rec-group-body hidden">' + itemsHtml + '</div></div>'
         );
       })
       .join('');
@@ -783,25 +746,82 @@
     });
   }
 
-  async function loadResumen() {
-    if (dash === 'evidencias') await loadEvidencias();
-    else await loadReconocimientos();
+  async function renderZonasBoard() {
+    const el = document.getElementById('zonasBoard');
+    if (!el) return;
+    el.innerHTML = '<p class="text-sm text-gray-500 py-6 text-center">Cargando zonas…</p>';
+    try {
+      await MC.zones.load(true);
+      const zonas = MC.zones.activeZonas();
+      if (!zonas.length) {
+        el.innerHTML =
+          '<p class="text-sm text-gray-500 py-6 text-center">Sin zonas. Ejecuta <code>sql/mc_zonas.sql</code>.</p>';
+        return;
+      }
+      el.innerHTML = zonas
+        .map(function (z) {
+          const vendors = MC.zones.vendorsInZona(z.id);
+          return (
+            '<div class="zona-card mb-4">' +
+            '<div class="resumen-zona-head">' +
+            '<h3>' + MC.escapeHtml(z.nombre) + '</h3>' +
+            '<span>' + vendors.length + ' ejecutivo' + (vendors.length !== 1 ? 's' : '') + '</span></div>' +
+            (vendors.length
+              ? '<ul class="zona-vendor-list">' +
+                vendors
+                  .map(function (v) {
+                    return (
+                      '<li class="' +
+                      (/VACANTE/i.test(v.nombre) ? 'vacante' : '') +
+                      '">' +
+                      MC.escapeHtml(v.nombre) +
+                      '</li>'
+                    );
+                  })
+                  .join('') +
+                '</ul>'
+              : '<p class="text-xs text-gray-400">Sin ejecutivos</p>') +
+            '</div>'
+          );
+        })
+        .join('');
+    } catch (e) {
+      el.innerHTML =
+        '<p class="text-sm text-red-600 py-6 text-center">' +
+        MC.escapeHtml(
+          /42P01|does not exist/i.test(e.message || '')
+            ? 'Falta tabla mc_zonas. Ejecuta sql/mc_zonas.sql en Supabase.'
+            : e.message
+        ) +
+        '</p>';
+    }
   }
 
   function bindOnce() {
     if (bound) return;
     bound = true;
 
-    document.querySelectorAll('.resumen-dash-btn').forEach(function (btn) {
+    const refreshEv = document.getElementById('btnRefreshEv');
+    if (refreshEv) refreshEv.addEventListener('click', loadEvidencias);
+    const refreshRec = document.getElementById('btnRefreshRec');
+    if (refreshRec) refreshRec.addEventListener('click', loadReconocimientos);
+    const refreshZ = document.getElementById('btnRefreshZonas');
+    if (refreshZ) refreshZ.addEventListener('click', renderZonasBoard);
+
+    document.querySelectorAll('[data-ev-preset]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        setDash(btn.dataset.dash);
+        setPreset('evDateFrom', 'evDateTo', btn.dataset.evPreset);
+        applyEvFilters();
+      });
+    });
+    document.querySelectorAll('[data-rec-preset]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setPreset('recDateFrom', 'recDateTo', btn.dataset.recPreset);
+        applyRecFilters();
       });
     });
 
-    const refresh = document.getElementById('btnRefreshResumen');
-    if (refresh) refresh.addEventListener('click', loadResumen);
-
-    ['evSearch', 'evFilterVendedor', 'evFilterEstado', 'evFilterMaterial', 'evFilterFecha', 'evSortBy'].forEach(
+    ['evDateFrom', 'evDateTo', 'evSearch', 'evFilterVendedor', 'evFilterEstado', 'evFilterMaterial', 'evFilterZona', 'evSortBy'].forEach(
       function (id) {
         const el = document.getElementById(id);
         if (!el) return;
@@ -813,12 +833,13 @@
     const clearEv = document.getElementById('evClearFilters');
     if (clearEv) {
       clearEv.addEventListener('click', function () {
-        ['evSearch', 'evFilterVendedor', 'evFilterEstado', 'evFilterMaterial'].forEach(function (id) {
-          const el = document.getElementById(id);
-          if (el) el.value = '';
-        });
-        const fec = document.getElementById('evFilterFecha');
-        if (fec) fec.value = 'todo';
+        ['evSearch', 'evFilterVendedor', 'evFilterEstado', 'evFilterMaterial', 'evFilterZona'].forEach(
+          function (id) {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+          }
+        );
+        setPreset('evDateFrom', 'evDateTo', 'all');
         applyEvFilters();
       });
     }
@@ -833,19 +854,24 @@
       });
     });
 
-    ['recSearch', 'recFilterPromotor', 'recFilterProducto', 'recFilterTipo'].forEach(function (id) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.addEventListener(id === 'recSearch' ? 'input' : 'change', applyRecFilters);
-    });
+    ['recDateFrom', 'recDateTo', 'recSearch', 'recFilterPromotor', 'recFilterProducto', 'recFilterTipo', 'recFilterZona'].forEach(
+      function (id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener(id === 'recSearch' ? 'input' : 'change', applyRecFilters);
+      }
+    );
 
     const clearRec = document.getElementById('recClearFilters');
     if (clearRec) {
       clearRec.addEventListener('click', function () {
-        ['recSearch', 'recFilterPromotor', 'recFilterProducto', 'recFilterTipo'].forEach(function (id) {
-          const el = document.getElementById(id);
-          if (el) el.value = '';
-        });
+        ['recSearch', 'recFilterPromotor', 'recFilterProducto', 'recFilterTipo', 'recFilterZona'].forEach(
+          function (id) {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+          }
+        );
+        setPreset('recDateFrom', 'recDateTo', 'all');
         applyRecFilters();
       });
     }
@@ -855,6 +881,18 @@
     bindOnce();
   }
 
+  function loadView(name) {
+    if (name === 'evidencias') return loadEvidencias();
+    if (name === 'reconocimientos') return loadReconocimientos();
+    if (name === 'zonas') return renderZonasBoard();
+    return Promise.resolve();
+  }
+
   global.MC = global.MC || {};
-  global.MC.resumen = { init: initResumen, load: loadResumen };
+  global.MC.resumen = {
+    init: initResumen,
+    load: loadEvidencias,
+    loadView: loadView,
+    renderZonasBoard: renderZonasBoard
+  };
 })(window);
