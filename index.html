@@ -127,17 +127,19 @@
           <div class="ev-stat"><p class="ev-stat-label">Hoy</p><p id="evStatHoy" class="ev-stat-val">—</p></div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-gray-100 p-4 mb-4 shadow-sm">
-          <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Clientes por estado</p>
-          <div id="evDistribucion"></div>
-        </div>
-        <div class="bg-white rounded-2xl border border-gray-100 p-4 mb-4 shadow-sm">
-          <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Ranking vendedores</p>
-          <div id="evRanking"></div>
+        <div class="dash-panels-row">
+          <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Clientes por estado</p>
+            <div id="evDistribucion"></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Ranking vendedores</p>
+            <div id="evRanking"></div>
+          </div>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-3 mb-3 shadow-sm space-y-2">
           <input id="evSearch" type="search" placeholder="Buscar vendedor o cliente…" class="input-base" style="border-color:#e5e7eb">
-          <div class="grid grid-cols-2 gap-2">
+          <div class="filters-grid">
             <select id="evFilterZona" class="input-base" style="border-color:#e5e7eb"><option value="">Todas las zonas</option></select>
             <select id="evSortBy" class="input-base" style="border-color:#e5e7eb">
               <option value="reciente">Más reciente</option>
@@ -192,7 +194,7 @@
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-3 mb-3 shadow-sm space-y-2">
           <input id="recSearch" type="search" placeholder="Buscar cliente, vendedor o producto…" class="input-base" style="border-color:#e5e7eb">
-          <div class="grid grid-cols-2 gap-2">
+          <div class="filters-grid">
             <select id="recFilterTipo" class="input-base" style="border-color:#e5e7eb">
               <option value="">Todos los tipos</option>
               <option value="PEDIDO">Solo Pedidos</option>

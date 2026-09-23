@@ -762,7 +762,7 @@
         .map(function (z) {
           const vendors = MC.zones.vendorsInZona(z.id);
           return (
-            '<div class="zona-card mb-4">' +
+            '<div class="zona-card">' +
             '<div class="resumen-zona-head">' +
             '<h3>' + MC.escapeHtml(z.nombre) + '</h3>' +
             '<span>' + vendors.length + ' ejecutivo' + (vendors.length !== 1 ? 's' : '') + '</span></div>' +
