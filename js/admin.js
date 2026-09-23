@@ -1,16 +1,34 @@
-/* Admin: usuarios panel + catálogos + zonas (asignar / rodar / desactivar) */
+/* Admin: usuarios panel + usuarios gestión + catálogos + zonas */
 (function (global) {
   let currentTab = 'usuarios';
   let usersCache = [];
+  let gestionUsersCache = [];
   let rotatePick = null;
 
   const TAB_LABELS = {
     usuarios: 'usuario',
+    usuarios_gestion: 'usuario de gestión',
     vendedores: 'vendedor',
     productos: 'producto',
     materiales: 'material',
     zonas: 'zona'
   };
+
+  function isPanelUsersTab() {
+    return currentTab === 'usuarios';
+  }
+
+  function isGestionUsersTab() {
+    return currentTab === 'usuarios_gestion';
+  }
+
+  function isAnyUsersTab() {
+    return isPanelUsersTab() || isGestionUsersTab();
+  }
+
+  function usersAuthApi() {
+    return isGestionUsersTab() ? MC.gestionAuth : MC.auth;
+  }
 
   function rowsFor(tab) {
     const c = MC.catalog.cache;
@@ -18,7 +36,34 @@
     if (tab === 'productos') return c.productos.slice().sort(function (a, b) { return a.nombre.localeCompare(b.nombre); });
     if (tab === 'materiales') return c.materiales.slice().sort(function (a, b) { return (a.orden || 0) - (b.orden || 0) || a.nombre.localeCompare(b.nombre); });
     if (tab === 'zonas') return MC.zones ? MC.zones.activeZonas() : [];
+    if (tab === 'usuarios_gestion') {
+      return gestionUsersCache.slice().sort(function (a, b) {
+        return String(a.username).localeCompare(String(b.username));
+      });
+    }
     return usersCache.slice().sort(function (a, b) { return String(a.username).localeCompare(String(b.username)); });
+  }
+
+  async function loadUsersForTab() {
+    if (isGestionUsersTab()) {
+      if (!MC.gestionAuth) throw new Error('MC.gestionAuth no cargado');
+      gestionUsersCache = await MC.gestionAuth.listUsers();
+      return;
+    }
+    if (isPanelUsersTab()) {
+      usersCache = await MC.auth.listUsers();
+    }
+  }
+
+  function usersTableHint(errMsg) {
+    if (isGestionUsersTab()) {
+      return /mc_gestion_users|42P01|does not exist/i.test(errMsg || '')
+        ? 'Tabla mc_gestion_users no existe. Ejecuta sql/mc_gestion_users.sql en Supabase.'
+        : errMsg;
+    }
+    return /mc_dashboard_users|42P01|does not exist/i.test(errMsg || '')
+      ? 'Tabla mc_dashboard_users no existe. Ejecuta sql/mc_dashboard_users.sql en Supabase.'
+      : errMsg;
   }
 
   function updateAddLabel() {
@@ -129,7 +174,9 @@
   function renderList() {
     const list = document.getElementById('adminList');
     const note = document.getElementById('adminUsersNote');
-    if (note) note.classList.toggle('hidden', currentTab !== 'usuarios');
+    const noteGestion = document.getElementById('adminGestionUsersNote');
+    if (note) note.classList.toggle('hidden', !isPanelUsersTab());
+    if (noteGestion) noteGestion.classList.toggle('hidden', !isGestionUsersTab());
     updateAddLabel();
     if (!list) return;
 
@@ -141,20 +188,26 @@
     const rows = rowsFor(currentTab);
     if (!rows.length) {
       list.innerHTML =
-        currentTab === 'usuarios'
+        isPanelUsersTab()
           ? '<p class="text-sm text-gray-500 py-6 text-center">Sin usuarios del panel. Usa <strong>+ Agregar</strong> o el bootstrap en login si la tabla está vacía.</p>'
-          : '<p class="text-sm text-gray-500 py-6 text-center">Sin registros</p>';
+          : isGestionUsersTab()
+            ? '<p class="text-sm text-gray-500 py-6 text-center">Sin usuarios de gestión. Usa <strong>+ Agregar</strong> o el bootstrap en <a class="text-brand-700 font-bold underline" href="gestion.html">gestion.html</a>.</p>'
+            : '<p class="text-sm text-gray-500 py-6 text-center">Sin registros</p>';
       return;
     }
-    if (currentTab === 'usuarios') {
+    if (isAnyUsersTab()) {
+      const kind = isGestionUsersTab() ? 'gestión' : 'panel';
+      const fmt = isGestionUsersTab() && MC.gestionAuth
+        ? MC.gestionAuth.formatCreated
+        : MC.auth.formatCreated;
       list.innerHTML = rows
         .map(function (r) {
           const inactive = r.activo === false;
-          const created = MC.auth.formatCreated(r.created_at);
+          const created = fmt(r.created_at);
           const meta =
             (inactive ? 'inactivo' : 'activo') +
             (created ? ' · creado ' + created : '') +
-            ' · panel';
+            ' · ' + kind;
           return (
             '<div class="admin-row' +
             (inactive ? ' inactive' : '') +
@@ -275,9 +328,11 @@
     nombreLabel.classList.remove('hidden');
     nombreInput.classList.remove('hidden');
 
-    if (currentTab === 'usuarios') {
+    if (isAnyUsersTab()) {
       nombreInput.value = row ? row.username : '';
-      nombreInput.placeholder = 'usuario o correo@empresa.com';
+      nombreInput.placeholder = isGestionUsersTab()
+        ? 'usuario de gestión o correo'
+        : 'usuario o correo@empresa.com';
       nombreLabel.textContent = 'Usuario / correo';
       extra.innerHTML =
         '<div class="mt-3"><label class="field-label">Contraseña' +
@@ -285,7 +340,11 @@
           ? ' <span class="field-sub">(dejar vacío para no cambiar)</span>'
           : '') +
         '</label><input type="password" id="adminPassword" class="input-base" style="border-color:#e5e7eb" autocomplete="new-password" minlength="4"></div>' +
-        '<p class="text-[11px] text-gray-400 mt-2">Se guarda con hash (sha256$salt$hex). Nunca en texto plano.</p>';
+        '<p class="text-[11px] text-gray-400 mt-2">Se guarda con hash (sha256$salt$hex). Nunca en texto plano.' +
+        (isGestionUsersTab()
+          ? ' Acceso solo a <code>gestion.html</code>.'
+          : '') +
+        '</p>';
     } else {
       nombreInput.value = row ? row.nombre : '';
       nombreInput.placeholder = 'Nombre';
@@ -337,32 +396,27 @@
       return;
     }
 
-    if (currentTab === 'usuarios') {
+    if (isAnyUsersTab()) {
       const username = document.getElementById('adminNombre').value.trim();
       const password = (document.getElementById('adminPassword') || {}).value || '';
       if (!username) return MC.showToast('Usuario requerido.', 'error');
       if (!id && !password) return MC.showToast('Contraseña requerida.', 'error');
       MC.setLoading(true, 'Guardando usuario…');
       try {
-        await MC.auth.upsertUser({
+        await usersAuthApi().upsertUser({
           id: id || null,
           username: username,
           password: password || null,
           activo: true
         });
-        usersCache = await MC.auth.listUsers();
+        await loadUsersForTab();
         hideForm();
         renderList();
         MC.setLoading(false);
         MC.showToast('Usuario guardado.', 'success');
       } catch (e) {
         MC.setLoading(false);
-        MC.showToast(
-          /mc_dashboard_users|42P01|does not exist/i.test(e.message || '')
-            ? 'Tabla mc_dashboard_users no existe. Ejecuta sql/mc_dashboard_users.sql en Supabase.'
-            : e.message,
-          'error'
-        );
+        MC.showToast(usersTableHint(e.message), 'error');
       }
       return;
     }
@@ -402,17 +456,17 @@
   }
 
   async function setActivo(id, activo) {
-    if (currentTab === 'usuarios') {
+    if (isAnyUsersTab()) {
       MC.setLoading(true, activo ? 'Activando…' : 'Desactivando…');
       try {
-        await MC.auth.setUserActivo(id, activo);
-        usersCache = await MC.auth.listUsers();
+        await usersAuthApi().setUserActivo(id, activo);
+        await loadUsersForTab();
         renderList();
         MC.setLoading(false);
         MC.showToast(activo ? 'Activado.' : 'Desactivado.', 'success');
       } catch (e) {
         MC.setLoading(false);
-        MC.showToast(e.message, 'error');
+        MC.showToast(usersTableHint(e.message), 'error');
       }
       return;
     }
@@ -449,14 +503,14 @@
       return;
     MC.setLoading(true, 'Eliminando…');
     try {
-      await MC.auth.deleteUser(id);
-      usersCache = await MC.auth.listUsers();
+      await usersAuthApi().deleteUser(id);
+      await loadUsersForTab();
       renderList();
       MC.setLoading(false);
       MC.showToast('Usuario eliminado.', 'success');
     } catch (e) {
       MC.setLoading(false);
-      MC.showToast(e.message, 'error');
+      MC.showToast(usersTableHint(e.message), 'error');
     }
   }
 
@@ -548,17 +602,13 @@
         });
         hideForm();
         rotatePick = null;
-        if (currentTab === 'usuarios') {
+        if (isAnyUsersTab()) {
           try {
-            usersCache = await MC.auth.listUsers();
+            await loadUsersForTab();
           } catch (e) {
-            usersCache = [];
-            MC.showToast(
-              /42P01|does not exist/i.test(e.message || '')
-                ? 'Falta mc_dashboard_users. Ejecuta el SQL en Supabase.'
-                : e.message,
-              'error'
-            );
+            if (isGestionUsersTab()) gestionUsersCache = [];
+            else usersCache = [];
+            MC.showToast(usersTableHint(e.message) || e.message, 'error');
           }
         }
         if (currentTab === 'zonas') {
@@ -602,17 +652,18 @@
         if (act === 'edit') showForm('edit', row);
         if (act === 'deactivate') setActivo(id, false);
         if (act === 'activate') setActivo(id, true);
-        if (act === 'delete' && currentTab === 'usuarios') removeUser(id, row.username);
+        if (act === 'delete' && isAnyUsersTab()) removeUser(id, row.username);
       });
     }
   }
 
   async function refreshAdmin() {
-    if (currentTab === 'usuarios') {
+    if (isAnyUsersTab()) {
       try {
-        usersCache = await MC.auth.listUsers();
+        await loadUsersForTab();
       } catch (e) {
-        usersCache = [];
+        if (isGestionUsersTab()) gestionUsersCache = [];
+        else usersCache = [];
       }
     }
     if (currentTab === 'zonas' || currentTab === 'vendedores') {
@@ -630,11 +681,12 @@
     });
     hideForm();
     rotatePick = null;
-    if (currentTab === 'usuarios') {
+    if (isAnyUsersTab()) {
       try {
-        usersCache = await MC.auth.listUsers();
+        await loadUsersForTab();
       } catch (e) {
-        usersCache = [];
+        if (isGestionUsersTab()) gestionUsersCache = [];
+        else usersCache = [];
       }
     }
     if (currentTab === 'zonas') {

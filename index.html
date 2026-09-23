@@ -231,6 +231,7 @@
         </div>
         <div class="admin-tabs">
           <button type="button" class="admin-tab activo" data-tab="usuarios">Usuarios</button>
+          <button type="button" class="admin-tab" data-tab="usuarios_gestion">Usuarios gestión</button>
           <button type="button" class="admin-tab" data-tab="vendedores">Vendedores</button>
           <button type="button" class="admin-tab" data-tab="zonas">Zonas</button>
           <button type="button" class="admin-tab" data-tab="productos">Productos</button>
@@ -239,6 +240,10 @@
         <p id="adminUsersNote" class="text-xs text-gray-500 mb-3">
           Gestiona usuarios del panel (<code>mc_dashboard_users</code>): crear, cambiar contraseña, desactivar o eliminar.
           El login por correo de Supabase Auth sigue como respaldo.
+        </p>
+        <p id="adminGestionUsersNote" class="text-xs text-gray-500 mb-3 hidden">
+          Usuarios del <strong>panel de gestión</strong> (<code>mc_gestion_users</code> / <a class="text-brand-700 font-bold underline" href="gestion.html">gestion.html</a>):
+          login aparte, no comparte sesión con este panel. Crear, cambiar contraseña, desactivar o eliminar.
         </p>
         <div id="adminForm" class="admin-form hidden">
           <h3 id="adminFormTitle" class="text-sm font-extrabold text-gray-800 mb-3">Agregar</h3>
@@ -277,6 +282,7 @@
 <script src="js/logo.js"></script>
 <script src="js/config.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/gestion-auth.js"></script>
 <script src="js/catalog.js"></script>
 <script src="js/zones.js"></script>
 <script src="js/resumen.js"></script>

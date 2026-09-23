@@ -337,14 +337,24 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 <div id="loginWrap">
   <div class="login-card">
     <div class="login-logo">
-      <h1>MarquesCheck <span>Admin</span></h1>
-      <p>Panel de Compensaciones · Ingresa tus credenciales</p>
+      <h1>MarquesCheck <span>Gestión</span></h1>
+      <p>Panel de Compensaciones · Login aparte (usuarios de gestión)</p>
     </div>
     <form id="loginForm">
-      <div class="field"><label>Usuario o correo</label><input type="text" id="loginEmail" required placeholder="correo@empresa.com"></div>
-      <div class="field"><label>Contraseña</label><input type="password" id="loginPwd" required placeholder="••••••••"></div>
+      <div class="field"><label>Usuario</label><input type="text" id="loginEmail" required placeholder="usuario o correo" autocomplete="username"></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="loginPwd" required placeholder="••••••••" autocomplete="current-password"></div>
       <button type="submit" class="btn-primary" id="btnLogin">Iniciar sesión</button>
+      <p id="loginError" style="display:none;margin-top:.75rem;font-size:.8rem;color:#dc2626;text-align:center;font-weight:600"></p>
     </form>
+    <div id="bootstrapBox" style="display:none;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border)">
+      <p style="font-size:.8rem;color:var(--text2);margin-bottom:.75rem;text-align:center">No hay usuarios de gestión. Crea el primero (también puedes crearlos desde Admin → Usuarios gestión en reconocimiento).</p>
+      <form id="bootstrapForm">
+        <div class="field"><label>Usuario</label><input type="text" id="bootUser" required placeholder="gestion@empresa.com"></div>
+        <div class="field"><label>Contraseña</label><input type="password" id="bootPwd" required minlength="4" placeholder="mín. 4 caracteres"></div>
+        <button type="submit" class="btn-primary" id="btnBootstrap">Crear admin de gestión</button>
+      </form>
+    </div>
+    <p style="font-size:.7rem;color:var(--text3);margin-top:1rem;text-align:center">Sesión independiente del panel de reconocimiento.</p>
   </div>
 </div>
 
@@ -598,10 +608,10 @@ main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.5rem 1.5rem 3rem
 <!-- PDF hidden -->
 <div id="pdfContent"></div>
 
+<script src="js/config.js"></script>
+<script src="js/gestion-auth.js"></script>
 <script>
-const SUPABASE_URL      = 'https://zgbsrbjtjnozpzxifpua.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnYnNyYmp0am5venB6eGlmcHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzNjI5MjUsImV4cCI6MjA2OTkzODkyNX0.zHVKe6Ab73PFhQqD3Au94x1Z71hMyRpxE1PCWP8-QTI';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = MC.sb;
 
 const REVERT_PASS = 'chispa26';
 
@@ -627,48 +637,89 @@ function getReconBadgeClass(num) {
   return 'recon5';
 }
 
-// ── AUTH ────────────────────────────────────────────────────
-async function checkUser() {
-  // Prefer Supabase Auth session; also honor local panel session from index.html
-  const { data: { session } } = await sb.auth.getSession();
-  let localOk = false;
-  try {
-    const raw = sessionStorage.getItem('mc_dash_session_v1');
-    if (raw) {
-      const s = JSON.parse(raw);
-      localOk = !!(s && (s.username || s.email));
-      if (localOk && !session) {
-        document.getElementById('loginWrap').style.display = 'none';
-        document.getElementById('appWrap').style.display = 'flex';
-        document.getElementById('headerUser').textContent = s.username || s.email || 'usuario';
-        loadAllCounts(); loadData();
-        return;
-      }
-    }
-  } catch (e) {}
-  if (session) {
-    document.getElementById('loginWrap').style.display = 'none';
-    document.getElementById('appWrap').style.display = 'flex';
-    document.getElementById('headerUser').textContent = session.user.email;
-    loadAllCounts(); loadData();
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  if (!el) return;
+  if (msg) {
+    el.textContent = msg;
+    el.style.display = 'block';
   } else {
-    document.getElementById('loginWrap').style.display = 'flex';
-    document.getElementById('appWrap').style.display = 'none';
+    el.textContent = '';
+    el.style.display = 'none';
   }
+}
+
+function enterApp(username) {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('appWrap').style.display = 'flex';
+  document.getElementById('headerUser').textContent = username || 'gestión';
+  loadAllCounts();
+  loadData();
+}
+
+function showLoginGate() {
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('appWrap').style.display = 'none';
+}
+
+// ── AUTH (mc_gestion_users — sesión aparte de reconocimiento) ─
+async function checkUser() {
+  const auth = await MC.gestionAuth.ensureAuthenticated();
+  if (auth.ok) {
+    enterApp(auth.session.username);
+    return;
+  }
+  showLoginGate();
+  try {
+    const c = await MC.gestionAuth.countUsers();
+    const box = document.getElementById('bootstrapBox');
+    if (box) {
+      box.style.display = (!c.error && c.count === 0) ? 'block' : 'none';
+    }
+    if (c.error && /42P01|does not exist/i.test(c.error.message || '')) {
+      showLoginError('Falta mc_gestion_users. Ejecuta sql/mc_gestion_users.sql en Supabase.');
+    }
+  } catch (e) { /* ignore */ }
 }
 document.getElementById('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
+  showLoginError('');
   const btn = document.getElementById('btnLogin');
   btn.textContent = 'Verificando…'; btn.disabled = true;
-  const { error } = await sb.auth.signInWithPassword({
-    email: document.getElementById('loginEmail').value,
-    password: document.getElementById('loginPwd').value
-  });
+  try {
+    const r = await MC.gestionAuth.login(
+      document.getElementById('loginEmail').value,
+      document.getElementById('loginPwd').value
+    );
+    if (r.ok) enterApp(r.session.username);
+  } catch (err) {
+    showLoginError(err.message || 'Credenciales inválidas');
+  }
   btn.textContent = 'Iniciar sesión'; btn.disabled = false;
-  if (error) { alert('Error: ' + error.message); return; }
+});
+const bootstrapForm = document.getElementById('bootstrapForm');
+if (bootstrapForm) {
+  bootstrapForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    showLoginError('');
+    const btn = document.getElementById('btnBootstrap');
+    btn.disabled = true;
+    try {
+      const r = await MC.gestionAuth.bootstrapAdmin(
+        document.getElementById('bootUser').value,
+        document.getElementById('bootPwd').value
+      );
+      if (r.ok) enterApp(r.session ? r.session.username : document.getElementById('bootUser').value);
+    } catch (err) {
+      showLoginError(err.message || 'No se pudo crear el admin');
+    }
+    btn.disabled = false;
+  });
+}
+document.getElementById('btnLogout').addEventListener('click', async () => {
+  await MC.gestionAuth.logout();
   checkUser();
 });
-document.getElementById('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); checkUser(); });
 
 // ── COUNTS ──────────────────────────────────────────────────
 async function loadAllCounts() {
