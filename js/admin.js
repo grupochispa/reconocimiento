@@ -86,18 +86,39 @@
 
     let html = '';
     if (unassigned.length) {
+      const zonaOpts = zonas
+        .map(function (z) {
+          return (
+            '<option value="' + z.id + '">' + MC.escapeHtml(z.nombre) + '</option>'
+          );
+        })
+        .join('');
       html +=
         '<div class="zona-unassigned mb-4">' +
-        '<p class="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-2">Sin zona (' +
+        '<p class="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-1">Sin zona (' +
         unassigned.length +
         ')</p>' +
-        '<div class="flex flex-wrap gap-1.5">' +
+        '<p class="text-[11px] text-amber-800/80 mb-3">Reubica cada ejecutivo eligiendo una zona.</p>' +
         unassigned
           .map(function (v) {
-            return '<span class="resumen-chip">' + MC.escapeHtml(v.nombre) + '</span>';
+            return (
+              '<div class="admin-row" data-vendedor="' +
+              v.id +
+              '">' +
+              '<div class="admin-row-main"><div class="admin-name">' +
+              MC.escapeHtml(v.nombre) +
+              '</div><div class="admin-meta">sin zona asignada</div></div>' +
+              '<div class="admin-row-actions zona-reubicar-actions">' +
+              '<select class="input-base zona-reubicar-select" style="border-color:#fcd34d;min-width:140px">' +
+              '<option value="">Elegir zona…</option>' +
+              zonaOpts +
+              '</select>' +
+              '<button type="button" class="admin-btn ok" data-act="reubicar">Reubicar</button>' +
+              '</div></div>'
+            );
           })
           .join('') +
-        '</div></div>';
+        '</div>';
     }
 
     if (!zonas.length) {
@@ -579,6 +600,28 @@
         renderList();
         MC.setLoading(false);
         MC.showToast('Movido a ' + zonas[idx].nombre, 'success');
+      } catch (e) {
+        MC.setLoading(false);
+        MC.showToast(e.message, 'error');
+      }
+      return;
+    }
+    if (act === 'reubicar') {
+      const vendorId = rowEl && rowEl.dataset.vendedor;
+      const sel = rowEl && rowEl.querySelector('.zona-reubicar-select');
+      const zonaId = sel && sel.value;
+      if (!vendorId) return;
+      if (!zonaId) return MC.showToast('Elige una zona.', 'error');
+      const z = MC.zones.activeZonas().find(function (x) {
+        return String(x.id) === String(zonaId);
+      });
+      MC.setLoading(true, 'Reubicando…');
+      try {
+        await MC.zones.assignVendor(zonaId, vendorId, 'reubicar');
+        await MC.zones.load(true);
+        renderList();
+        MC.setLoading(false);
+        MC.showToast('Reubicado en ' + (z ? z.nombre : 'zona'), 'success');
       } catch (e) {
         MC.setLoading(false);
         MC.showToast(e.message, 'error');

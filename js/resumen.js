@@ -282,9 +282,27 @@
     set('evStatHoy', hoyCount);
   }
 
+  const PANEL_PREVIEW = 5;
+
+  function bindPanelMore(el) {
+    if (!el) return;
+    const btn = el.querySelector('.panel-more-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      const expanded = el.dataset.expanded === '1';
+      el.dataset.expanded = expanded ? '0' : '1';
+      el.querySelectorAll('[data-more-row]').forEach(function (row) {
+        row.classList.toggle('hidden', expanded);
+      });
+      const rest = Number(btn.dataset.rest || 0);
+      btn.textContent = expanded ? 'Ver más (' + rest + ')' : 'Ver menos';
+    });
+  }
+
   function renderEvDistribucion(data) {
     const el = document.getElementById('evDistribucion');
     if (!el) return;
+    el.dataset.expanded = '0';
     const counts = {};
     data.forEach(function (r) {
       const e = r.estado || 'NO DEFINIDO';
@@ -299,23 +317,32 @@
     }
     const max = sorted[0][1] || 1;
     const total = sorted.reduce(function (s, x) { return s + x[1]; }, 0);
-    el.innerHTML = sorted
-      .map(function (pair) {
-        const pct = Math.round((pair[1] / max) * 100);
-        const pctT = total ? Math.round((pair[1] / total) * 100) : 0;
-        return (
-          '<div class="ev-bar-row">' +
-          '<span class="ev-bar-label">' + MC.escapeHtml(pair[0]) + '</span>' +
-          '<div class="ev-bar-track"><div class="ev-bar-fill" style="width:' + pct + '%"></div></div>' +
-          '<span class="ev-bar-count" title="' + pctT + '%">' + pair[1] + '</span></div>'
-        );
-      })
-      .join('');
+    const rest = Math.max(0, sorted.length - PANEL_PREVIEW);
+    el.innerHTML =
+      sorted
+        .map(function (pair, i) {
+          const pct = Math.round((pair[1] / max) * 100);
+          const pctT = total ? Math.round((pair[1] / total) * 100) : 0;
+          const more = i >= PANEL_PREVIEW;
+          return (
+            '<div class="ev-bar-row' + (more ? ' hidden' : '') + '"' +
+            (more ? ' data-more-row="1"' : '') + '>' +
+            '<span class="ev-bar-label">' + MC.escapeHtml(pair[0]) + '</span>' +
+            '<div class="ev-bar-track"><div class="ev-bar-fill" style="width:' + pct + '%"></div></div>' +
+            '<span class="ev-bar-count" title="' + pctT + '%">' + pair[1] + '</span></div>'
+          );
+        })
+        .join('') +
+      (rest
+        ? '<button type="button" class="panel-more-btn" data-rest="' + rest + '">Ver más (' + rest + ')</button>'
+        : '');
+    bindPanelMore(el);
   }
 
   function renderEvRanking(data) {
     const el = document.getElementById('evRanking');
     if (!el) return;
+    el.dataset.expanded = '0';
     const map = {};
     data.forEach(function (r) {
       const k = r.promotor_nombre ? String(r.promotor_nombre).toUpperCase().trim() : 'SIN NOMBRE';
@@ -333,29 +360,35 @@
       el.innerHTML = '<p class="text-sm text-gray-400 py-4 text-center">Sin datos de vendedores.</p>';
       return;
     }
-    el.innerHTML = ranking
-      .slice(0, 15)
-      .map(function (v, i) {
-        const pos = i + 1;
-        const prom = v.visitas ? (v.materiales / v.visitas).toFixed(1) : '0.0';
-        const init = v.nombre.slice(0, 2).toUpperCase();
-        const z = MC.zones ? MC.zones.zonaForVendorName(v.nombre) : null;
-        const medal = pos <= 3 ? String(pos) : String(pos);
-        return (
-          '<div class="ev-rank-row">' +
-          '<span class="ev-rank-pos">' + medal + '</span>' +
-          '<div class="ev-rank-avatar" style="background:' + nameColor(v.nombre) + '">' +
-          MC.escapeHtml(init) +
-          '</div>' +
-          '<div class="ev-rank-info"><p class="ev-rank-name">' +
-          MC.escapeHtml(v.nombre) +
-          '</p><p class="ev-rank-meta">' +
-          (z ? MC.escapeHtml(z.nombre) + ' · ' : '') +
-          v.visitas + ' visitas · ' + v.materiales + ' mat · prom ' + prom +
-          ' · ' + v.fotos + ' fotos</p></div></div>'
-        );
-      })
-      .join('');
+    const rest = Math.max(0, ranking.length - PANEL_PREVIEW);
+    el.innerHTML =
+      ranking
+        .map(function (v, i) {
+          const pos = i + 1;
+          const prom = v.visitas ? (v.materiales / v.visitas).toFixed(1) : '0.0';
+          const init = v.nombre.slice(0, 2).toUpperCase();
+          const z = MC.zones ? MC.zones.zonaForVendorName(v.nombre) : null;
+          const more = i >= PANEL_PREVIEW;
+          return (
+            '<div class="ev-rank-row' + (more ? ' hidden' : '') + '"' +
+            (more ? ' data-more-row="1"' : '') + '>' +
+            '<span class="ev-rank-pos">' + pos + '</span>' +
+            '<div class="ev-rank-avatar" style="background:' + nameColor(v.nombre) + '">' +
+            MC.escapeHtml(init) +
+            '</div>' +
+            '<div class="ev-rank-info"><p class="ev-rank-name">' +
+            MC.escapeHtml(v.nombre) +
+            '</p><p class="ev-rank-meta">' +
+            (z ? MC.escapeHtml(z.nombre) + ' · ' : '') +
+            v.visitas + ' visitas · ' + v.materiales + ' mat · prom ' + prom +
+            ' · ' + v.fotos + ' fotos</p></div></div>'
+          );
+        })
+        .join('') +
+      (rest
+        ? '<button type="button" class="panel-more-btn" data-rest="' + rest + '">Ver más (' + rest + ')</button>'
+        : '');
+    bindPanelMore(el);
   }
 
   function chipsHtml(mats) {
@@ -395,33 +428,52 @@
             );
           })
           .join('');
+        const fotoHint = fotos.length
+          ? fotos.length + ' foto' + (fotos.length !== 1 ? 's' : '') + ' · tocar para ver'
+          : 'Sin fotos';
         return (
-          '<article class="visita-card">' +
-          '<div class="flex items-center gap-3 mb-3">' +
+          '<article class="visita-card" data-open="0">' +
+          '<button type="button" class="visita-card-head">' +
+          '<div class="flex items-center gap-3">' +
           '<div class="ev-rank-avatar" style="background:' + nameColor(r.promotor_nombre) + '">' +
           MC.escapeHtml(init) + '</div>' +
-          '<div class="min-w-0 flex-1"><p class="font-bold text-sm truncate">' +
+          '<div class="min-w-0 flex-1 text-left"><p class="font-bold text-sm truncate">' +
           MC.escapeHtml(r.promotor_nombre || '—') +
           (z ? ' <span class="text-[10px] font-bold text-brand-700">· ' + MC.escapeHtml(z.nombre) + '</span>' : '') +
           '</p><p class="text-xs text-gray-500">' + fmtDate(r.fecha_creacion) + '</p></div>' +
           (r.estado ? '<span class="badge-visita">' + MC.escapeHtml(r.estado) + '</span>' : '') +
           '</div>' +
-          '<p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Cliente</p>' +
-          '<h4 class="text-base font-extrabold text-gray-900 mb-2">' +
+          '<p class="text-xs font-bold text-gray-400 uppercase tracking-wider mt-3 mb-0.5 text-left">Cliente</p>' +
+          '<h4 class="text-base font-extrabold text-gray-900 text-left">' +
           MC.escapeHtml(r.cliente_nombre || 'Cliente') + '</h4>' +
-          '<div class="flex flex-wrap gap-1.5 mb-3">' + chipsHtml(mats) + '</div>' +
+          '<div class="visita-card-meta">' +
+          '<div class="flex flex-wrap gap-1.5">' + chipsHtml(mats) + '</div>' +
+          '<span class="visita-foto-hint shrink-0">' + fotoHint + '</span></div></button>' +
+          '<div class="visita-card-body hidden">' +
           '<p class="text-[11px] font-bold text-brand-700 uppercase tracking-wide mb-1">Evidencias (' +
           fotos.length + ')</p>' +
           (fotos.length
             ? '<div class="grid grid-cols-3 gap-2">' + thumbs + '</div>'
             : '<p class="text-xs text-gray-400">Sin fotos</p>') +
-          '</article>'
+          '</div></article>'
         );
       })
       .join('');
 
     if (append) grid.insertAdjacentHTML('beforeend', html);
     else grid.innerHTML = html;
+
+    grid.querySelectorAll('.visita-card-head').forEach(function (btn) {
+      if (btn.dataset.bound === '1') return;
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', function () {
+        const card = btn.closest('.visita-card');
+        const body = card.querySelector('.visita-card-body');
+        const open = card.dataset.open === '1';
+        card.dataset.open = open ? '0' : '1';
+        body.classList.toggle('hidden', open);
+      });
+    });
 
     if (pag) {
       if (end < visitasFiltered.length) {

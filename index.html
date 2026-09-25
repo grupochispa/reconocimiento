@@ -106,7 +106,7 @@
           <button type="button" id="btnRefreshEv" class="shrink-0 px-3 py-2 text-xs font-bold rounded-xl bg-white border border-gray-200 text-brand-700">Actualizar</button>
         </div>
 
-        <div class="date-range-bar mb-4">
+        <div class="date-range-bar mb-3">
           <label class="field-label mb-0">Desde</label>
           <input type="date" id="evDateFrom" class="input-base" style="border-color:#e5e7eb">
           <label class="field-label mb-0">Hasta</label>
@@ -116,28 +116,7 @@
           <button type="button" class="date-preset" data-ev-preset="all">Todo</button>
         </div>
 
-        <div class="ev-stats-grid ev-stats-grid--wide mb-4">
-          <div class="ev-stat"><p class="ev-stat-label">Visitas</p><p id="evStatVisitas" class="ev-stat-val">—</p></div>
-          <div class="ev-stat"><p class="ev-stat-label">Vendedores</p><p id="evStatVendedores" class="ev-stat-val">—</p></div>
-          <div class="ev-stat"><p class="ev-stat-label">Materiales</p><p id="evStatMateriales" class="ev-stat-val">—</p></div>
-          <div class="ev-stat"><p class="ev-stat-label">Fotos</p><p id="evStatFotos" class="ev-stat-val">—</p></div>
-          <div class="ev-stat"><p class="ev-stat-label">Prom. mat/visita</p><p id="evStatPromMat" class="ev-stat-val">—</p></div>
-          <div class="ev-stat"><p class="ev-stat-label">% con foto</p><p id="evStatPctFoto" class="ev-stat-val">—</p></div>
-          <div class="ev-stat"><p class="ev-stat-label">Zonas activas</p><p id="evStatZonas" class="ev-stat-val">—</p></div>
-          <div class="ev-stat"><p class="ev-stat-label">Hoy</p><p id="evStatHoy" class="ev-stat-val">—</p></div>
-        </div>
-
-        <div class="dash-panels-row">
-          <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Clientes por estado</p>
-            <div id="evDistribucion"></div>
-          </div>
-          <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Ranking vendedores</p>
-            <div id="evRanking"></div>
-          </div>
-        </div>
-        <div class="bg-white rounded-2xl border border-gray-100 p-3 mb-3 shadow-sm space-y-2">
+        <div class="bg-white rounded-2xl border border-gray-100 p-3 mb-4 shadow-sm space-y-2">
           <input id="evSearch" type="search" placeholder="Buscar vendedor o cliente…" class="input-base" style="border-color:#e5e7eb">
           <div class="filters-grid">
             <select id="evFilterZona" class="input-base" style="border-color:#e5e7eb"><option value="">Todas las zonas</option></select>
@@ -154,6 +133,28 @@
           <div class="flex items-center justify-between gap-2">
             <p id="evResultsCount" class="text-xs font-semibold text-gray-500">—</p>
             <button type="button" id="evClearFilters" class="text-xs font-bold text-brand-700">Limpiar</button>
+          </div>
+        </div>
+
+        <div class="ev-stats-grid ev-stats-grid--wide mb-4">
+          <div class="ev-stat"><p class="ev-stat-label">Visitas</p><p id="evStatVisitas" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">Vendedores</p><p id="evStatVendedores" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">Materiales</p><p id="evStatMateriales" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">Fotos</p><p id="evStatFotos" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">Prom. mat/visita</p><p id="evStatPromMat" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">% con foto</p><p id="evStatPctFoto" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">Zonas activas</p><p id="evStatZonas" class="ev-stat-val">—</p></div>
+          <div class="ev-stat"><p class="ev-stat-label">Hoy</p><p id="evStatHoy" class="ev-stat-val">—</p></div>
+        </div>
+
+        <div class="dash-panels-row">
+          <div class="dash-panel">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Clientes por estado</p>
+            <div id="evDistribucion"></div>
+          </div>
+          <div class="dash-panel">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Ranking vendedores</p>
+            <div id="evRanking"></div>
           </div>
         </div>
         <div id="evGallery"></div>
